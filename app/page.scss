@@ -1,0 +1,30 @@
+.container-particle {
+  position: relative;
+
+  &::after,
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 5%;
+  }
+
+  &::after {
+    right: 0;
+    background: linear-gradient(
+      to left,
+      rgb(13, 12, 12, 1) 0%,
+      rgb(15, 15, 15, 0) 80%
+    );
+  }
+
+  &::before {
+    left: 0;
+    background: linear-gradient(
+      to right,
+      rgb(13, 12, 12, 1) 0%,
+      rgb(15, 15, 15, 0) 80%
+    );
+  }
+}
