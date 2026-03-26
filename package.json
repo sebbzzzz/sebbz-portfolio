@@ -10,13 +10,12 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@pixi/react": "^8.0.5",
     "next": "14.2.3",
-    "pixi.js": "^8.16.0",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
+    "@pixi/react": "^7.1.2",
     "@types/node": "20.11.30",
     "@types/react": "18.2.61",
     "@types/react-dom": "18.2.19",
@@ -25,6 +24,7 @@
     "eslint-config-next": "14.2.3",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "5.1.3",
+    "pixi.js": "7",
     "postcss": "8.4.35",
     "prettier": "3.2.5",
     "sass": "1.77.5",
