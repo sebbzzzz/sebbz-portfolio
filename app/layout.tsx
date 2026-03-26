@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Mono, Inter, Space_Grotesk } from 'next/font/google';
+import './tailwind.css';
 import './globals.scss';
 
 const inter = Inter({
