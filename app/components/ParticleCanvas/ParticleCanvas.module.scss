@@ -1,0 +1,4 @@
+.canvas {
+  display: block; // removes inline baseline gap
+  will-change: transform; // promotes to compositor layer
+}
