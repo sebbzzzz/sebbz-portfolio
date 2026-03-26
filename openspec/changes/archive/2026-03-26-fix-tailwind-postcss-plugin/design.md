@@ -5,10 +5,12 @@ The project uses Tailwind CSS v4 with Next.js 15 and SCSS. Tailwind v4 extracted
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Resolve the PostCSS build error so `app/globals.scss` compiles
 - Align PostCSS config with Tailwind v4 package structure
 
 **Non-Goals:**
+
 - Upgrading or downgrading Tailwind CSS itself
 - Changing any Tailwind configuration or utility usage
 - Modifying SCSS or global styles
@@ -16,10 +18,12 @@ The project uses Tailwind CSS v4 with Next.js 15 and SCSS. Tailwind v4 extracted
 ## Decisions
 
 **Use `@tailwindcss/postcss` as the PostCSS plugin key**
+
 - Tailwind v4 requires it; the old `tailwindcss` key no longer works as a PostCSS plugin
 - No alternatives — this is the mandated migration path per Tailwind v4 docs
 
 **Keep `autoprefixer` in place**
+
 - It remains a valid and independent PostCSS plugin; no reason to remove it
 
 ## Risks / Trade-offs
