@@ -33,25 +33,29 @@ Use these skills for detailed patterns on-demand:
 
 > **Skills Reference**: For detailed patterns, use these skills:
 >
-> - [`typescript`](./.claude/skills/typescript/SKILL.md) - Const types, flat interfaces
-> - [`react-19`](../skills/react-19/SKILL.md) - No useMemo/useCallback, compiler
-> - [`nextjs-15`](../skills/nextjs-15/SKILL.md) - App Router, Server Actions
-> - [`tailwind-4`](../skills/tailwind-4/SKILL.md) - cn() utility, no var() in className
-> - [`playwright`](../skills/playwright/SKILL.md) - Page Object Model, selectors
-> - [`find-skills`](../skills/find-skills/SKILL.md) - Search for AI agent skills
+> - [`typescript-advanced-types`](./.claude/skills/typescript-advanced-types) - Const types, flat interfaces
+> - [`vercel-react-best-practices`](./.claude/skills/vercel-react-best-practices) - React 19, Next.js 15, App Router, Server Actions
+> - [`tailwind-4-docs`](./.claude/skills/tailwind-4-docs) - cn() utility, Tailwind 4 patterns
+> - [`find-skills`](./.claude/skills/find-skills) - Search for AI agent skills
+> - [`openspec-propose`](./.claude/skills/openspec-propose) - Propose a new change
+> - [`openspec-apply-change`](./.claude/skills/openspec-apply-change) - Implement tasks from a change
+> - [`openspec-explore`](./.claude/skills/openspec-explore) - Explore ideas and clarify requirements
+> - [`openspec-archive-change`](./.claude/skills/openspec-archive-change) - Archive a completed change
 
 ### Auto-invoke Skills
 
 When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
-| Action                                                    | Skill         |
-| --------------------------------------------------------- | ------------- |
-| App Router / Server Actions                               | `nextjs-15`   |
-| Working with Tailwind classes                             | `tailwind-4`  |
-| Writing Playwright E2E tests                              | `playwright`  |
-| Writing React components                                  | `react-19`    |
-| Writing TypeScript types/interfaces                       | `typescript`  |
-| Searching for patterns or best practices for new features | `find-skills` |
+| Action                                                    | Skill                        |
+| --------------------------------------------------------- | ---------------------------- |
+| App Router / Server Actions                               | `vercel-react-best-practices` |
+| Working with Tailwind classes                             | `tailwind-4-docs`            |
+| Writing React components                                  | `vercel-react-best-practices` |
+| Writing TypeScript types/interfaces                       | `typescript-advanced-types`  |
+| Searching for patterns or best practices for new features | `find-skills`                |
+| Proposing a new feature or change                         | `openspec-propose`           |
+| Implementing tasks from a change                          | `openspec-apply-change`      |
+| Exploring ideas or requirements                           | `openspec-explore`           |
 
 ### Skill Maintenance
 
@@ -67,7 +71,7 @@ High-level view of how the project layers connect:
 ```
 ┌─────────────────────────────────────────────────┐
 │                   Browser                        │
-│         (Client Components, Zustand)             │
+│           (Client Components)                    │
 └────────────────────┬────────────────────────────┘
                      │ user interaction / form submit
 ┌────────────────────▼────────────────────────────┐
@@ -115,7 +119,6 @@ High-level view of how the project layers connect:
 | `actions/{feature}/`             | Server Actions                            |
 | `components/{domain}/`           | Shared Client/Server Components (2+ uses) |
 | `features/{feature}/components/` | Feature-local components (1 use)          |
-| `store/`                         | Zustand client state                      |
 | `hooks/`                         | Shared React hooks (2+ uses)              |
 | `lib/`                           | Shared utilities (2+ uses)                |
 | `types/`                         | Shared TypeScript types (2+ uses)         |
@@ -151,7 +154,7 @@ ALWAYS order imports in this sequence, each group separated by a blank line:
 ```typescript
 // 1. External packages
 import { useState } from "react"
-import { z } from "zod"
+import { NextRequest } from "next/server"
 
 // 2. Internal aliases (@/)
 import { cn } from "@/lib/utils"
@@ -250,35 +253,6 @@ export async function updateUser(formData: FormData) {
   await updateDB(validated)
   revalidatePath("/users")
 }
-```
-
-### Form + Validation (Zod 4 + react-hook-form + Server Action)
-
-```typescript
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-
-const schema = z.object({
-  email: z.email(), // Zod 4: z.email() not z.string().email()
-  id: z.uuid(), // Zod 4: z.uuid() not z.string().uuid()
-})
-
-const form = useForm({ resolver: zodResolver(schema) })
-```
-
-### Zustand Store
-
-```typescript
-const useStore = create(
-  persist(
-    (set) => ({
-      value: 0,
-      increment: () => set((s) => ({ value: s.value + 1 })),
-    }),
-    { name: "store-key" },
-  ),
-)
 ```
 
 ### className Composition
@@ -409,30 +383,3 @@ yarn typecheck      # Run TypeScript type checking
 | Server Actions           | Happy path, validation failure, unexpected error |
 | Components with UI logic | Each conditional rendering branch                |
 | Pure utilities in `lib/` | All edge cases                                   |
-
-### E2E Tests (Playwright — Page Object Model)
-
-```typescript
-export class FeaturePage extends BasePage {
-  readonly submitBtn = this.page.getByRole("button", { name: "Submit" })
-  async goto() {
-    await super.goto("/path")
-  }
-  async submit() {
-    await this.submitBtn.click()
-  }
-}
-
-test("action works", { tag: ["@critical", "@feature"] }, async ({ page }) => {
-  const p = new FeaturePage(page)
-  await p.goto()
-  await p.submit()
-  await expect(page).toHaveURL("/expected")
-})
-```
-
-**Playwright rules:**
-
-- ALWAYS: use `getByRole`, `getByLabel`, `getByText` for selectors — never CSS selectors or data-testid unless no accessible alternative exists
-- ALWAYS: tag tests with feature scope and criticality: `@critical`, `@feature-name`
-- ALWAYS: each feature gets its own Page Object class extending `BasePage`
