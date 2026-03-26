@@ -46,16 +46,16 @@ Use these skills for detailed patterns on-demand:
 
 When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
-| Action                                                    | Skill                        |
-| --------------------------------------------------------- | ---------------------------- |
+| Action                                                    | Skill                         |
+| --------------------------------------------------------- | ----------------------------- |
 | App Router / Server Actions                               | `vercel-react-best-practices` |
-| Working with Tailwind classes                             | `tailwind-4-docs`            |
+| Working with Tailwind classes                             | `tailwind-4-docs`             |
 | Writing React components                                  | `vercel-react-best-practices` |
-| Writing TypeScript types/interfaces                       | `typescript-advanced-types`  |
-| Searching for patterns or best practices for new features | `find-skills`                |
-| Proposing a new feature or change                         | `openspec-propose`           |
-| Implementing tasks from a change                          | `openspec-apply-change`      |
-| Exploring ideas or requirements                           | `openspec-explore`           |
+| Writing TypeScript types/interfaces                       | `typescript-advanced-types`   |
+| Searching for patterns or best practices for new features | `find-skills`                 |
+| Proposing a new feature or change                         | `openspec-propose`            |
+| Implementing tasks from a change                          | `openspec-apply-change`       |
+| Exploring ideas or requirements                           | `openspec-explore`            |
 
 ### Skill Maintenance
 
