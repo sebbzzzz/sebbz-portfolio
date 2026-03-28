@@ -1,13 +1,5 @@
 export type RGB = [number, number, number]
 
-// ─── Customize colors here ───────────────────────────────────────────────────
-
-export const PARTICLE_COLORS: Record<string, RGB> = {
-  base: [255, 255, 255],
-  logoActive: [0, 119, 181],
-  logoInactive: [25, 25, 45],
-}
-
 // ─── Wave color sequence — each sweep transitions to the next color ───────────
 // Add / remove / reorder entries freely; the animation cycles through them.
 export const WAVE_COLORS: RGB[] = [
@@ -54,4 +46,5 @@ export const PARTICLE_CONFIG = {
   mouseScaleMin: 0.2, // min scale at cursor center
   lerpSpeed: 0.08, // per-frame lerp factor
   transitionDurationMs: 900,
+  logoBackgroundScale: 0.1, // scale of non-logo particles during icon formation
 } as const

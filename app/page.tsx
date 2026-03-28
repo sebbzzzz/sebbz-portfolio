@@ -2,8 +2,29 @@
 
 import { useEffect, useRef, useState } from "react"
 import ParticleCanvas from "./components/ParticleCanvas/ParticleCanvas"
-import { ParticleShape } from "./components/ParticleCanvas/useParticleEngine"
-import "./page.scss"
+import SocialLinks, { SocialLink } from "./components/SocialLinks/SocialLinks"
+
+const SOCIAL_LINKS: SocialLink[] = [
+  {
+    label: "Linkedin",
+    href: "https://www.linkedin.com/in/sebbz/",
+    target: "_blank",
+    iconPath: "/icons/linkedin.svg",
+  },
+  {
+    label: "Github",
+    href: "https://github.com/sebbz",
+    target: "_blank",
+    iconPath: "/icons/github.svg",
+  },
+  {
+    label: "Email",
+    href: "mailto:sebastian.1546@gmail.com",
+    iconPath: "/icons/mail.svg",
+  },
+]
+
+const PREFETCH_PATHS = SOCIAL_LINKS.map((l) => l.iconPath)
 
 export default function HomePage() {
   const particleContainer = useRef<HTMLDivElement>(null)
@@ -11,7 +32,7 @@ export default function HomePage() {
     width: 0,
     height: 0,
   })
-  const [hoveredLink, setHoveredLink] = useState<ParticleShape>(null)
+  const [activeIconPath, setActiveIconPath] = useState<string | null>(null)
 
   useEffect(() => {
     if (!particleContainer.current) return
@@ -43,63 +64,72 @@ export default function HomePage() {
     particleContainerDimensions.width > 0 && particleContainerDimensions.height > 0
 
   return (
-    <main className="container h-svh">
-      <div className="row h-full">
-        <section className="col-5 flex flex-col justify-center gap-20">
-          <div className="grid gap-5">
-            <h1 className="text-4xl">
-              Hello! <strong>I’m Sebastián,</strong>
-            </h1>
+    <main className="relative w-svw h-svh">
+      <section className="flex flex-col justify-center gap-8 absolute top-5 left-5 max-w-4/12 z-10 glass-panel p-5">
+        <div className="grid gap-2">
+          <h1 className="text-2xl">
+            Hello! <strong>I&apos;m Sebastián,</strong>
+          </h1>
 
-            <p className="text-xl">
-              I really enjoy creating visually captivating projects that adhere to rigorous
-              standards of performance, accessibility, and coding best practices.
-            </p>
-          </div>
+          <p className="text-md">
+            I really enjoy creating visually captivating projects that adhere to rigorous standards
+            of performance, accessibility, and coding best practices.
+          </p>
+        </div>
 
-          <ul>
-            <li>
-              <a
-                href="https://www.linkedin.com/in/sebbz/"
-                target="_blank"
-                onMouseEnter={() => setHoveredLink("linkedin")}
-                onMouseLeave={() => setHoveredLink(null)}
-              >
-                Linkedin
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://x.com/sebbz__"
-                target="_blank"
-                onMouseEnter={() => setHoveredLink("twitter")}
-                onMouseLeave={() => setHoveredLink(null)}
-              >
-                Twitter
-              </a>
-            </li>
-            <li>
-              <a
-                href="mailto:sebastian.1546@gmail.com"
-                onMouseEnter={() => setHoveredLink("email")}
-                onMouseLeave={() => setHoveredLink(null)}
-              >
-                Email
-              </a>
-            </li>
-          </ul>
-        </section>
+        <SocialLinks links={SOCIAL_LINKS} onHoverChange={setActiveIconPath} />
+      </section>
 
-        <section ref={particleContainer} className="col-7 container-particle">
-          {hasDimensions && (
-            <ParticleCanvas
-              width={particleContainerDimensions.width}
-              height={particleContainerDimensions.height}
-              activeShape={hoveredLink}
-            />
-          )}
-        </section>
-      </div>
+      <section className="absolute bottom-10 inset-x-0 z-10">
+        <ul className="flex gap-5">
+          <li>
+            <figure>
+              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
+            </figure>
+          </li>
+
+          <li>
+            <figure>
+              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
+            </figure>
+          </li>
+
+          <li>
+            <figure>
+              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
+            </figure>
+          </li>
+
+          <li>
+            <figure>
+              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
+            </figure>
+          </li>
+
+          <li>
+            <figure>
+              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
+            </figure>
+          </li>
+
+          <li>
+            <figure>
+              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
+            </figure>
+          </li>
+        </ul>
+      </section>
+
+      <section ref={particleContainer} className="w-full h-full">
+        {hasDimensions && (
+          <ParticleCanvas
+            width={particleContainerDimensions.width}
+            height={particleContainerDimensions.height}
+            iconPath={activeIconPath}
+            prefetchIconPaths={PREFETCH_PATHS}
+          />
+        )}
+      </section>
     </main>
   )
 }
