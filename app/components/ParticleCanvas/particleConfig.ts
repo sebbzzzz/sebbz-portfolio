@@ -44,7 +44,7 @@ export const PARTICLE_CONFIG = {
   wavePauseDurationMs: 5000, // ms the color holds between sweeps
   mouseRadius: 80, // px — scatter effect radius
   mouseScaleMin: 0.2, // min scale at cursor center
-  lerpSpeed: 0.08, // per-frame lerp factor
-  transitionDurationMs: 900,
+  lerpSpeed: 0.15, // per-frame lerp factor
+  transitionDurationMs: 200,
   logoBackgroundScale: 0.1, // scale of non-logo particles during icon formation
 } as const

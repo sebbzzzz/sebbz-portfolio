@@ -1,6 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+
+import BackgroundVideoOverlay from "./components/BackgroundVideoOverlay/BackgroundVideoOverlay"
+import InfiniteCarousel from "./components/InfiniteCarousel/InfiniteCarousel"
+import type { CarouselItem } from "./components/InfiniteCarousel/InfiniteCarousel"
 import ParticleCanvas from "./components/ParticleCanvas/ParticleCanvas"
 import SocialLinks, { SocialLink } from "./components/SocialLinks/SocialLinks"
 
@@ -24,6 +28,11 @@ const SOCIAL_LINKS: SocialLink[] = [
   },
 ]
 
+const CAROUSEL_ITEMS: CarouselItem[] = Array.from({ length: 6 }, (_, i) => ({
+  src: "/placeholders/600x600.png",
+  alt: `Portfolio item ${i + 1}`,
+}))
+
 const PREFETCH_PATHS = SOCIAL_LINKS.map((l) => l.iconPath)
 
 export default function HomePage() {
@@ -33,6 +42,8 @@ export default function HomePage() {
     height: 0,
   })
   const [activeIconPath, setActiveIconPath] = useState<string | null>(null)
+  const [activeCarouselIndex, setActiveCarouselIndex] = useState<number | null>(null)
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false)
 
   useEffect(() => {
     if (!particleContainer.current) return
@@ -63,9 +74,15 @@ export default function HomePage() {
   const hasDimensions =
     particleContainerDimensions.width > 0 && particleContainerDimensions.height > 0
 
+  const isVideoOverlayVisible = activeCarouselIndex !== null
+
   return (
     <main className="relative w-svw h-svh">
-      <section className="flex flex-col justify-center gap-8 absolute top-5 left-5 max-w-4/12 z-10 glass-panel p-5">
+      <section
+        className={`flex flex-col justify-center gap-8 absolute top-5 left-5 max-w-4/12 z-10 glass-panel p-5 transition-opacity duration-300 ${
+          isCarouselHovered ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
         <div className="grid gap-2">
           <h1 className="text-2xl">
             Hello! <strong>I&apos;m Sebastián,</strong>
@@ -81,46 +98,23 @@ export default function HomePage() {
       </section>
 
       <section className="absolute bottom-10 inset-x-0 z-10">
-        <ul className="flex gap-5">
-          <li>
-            <figure>
-              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
-            </figure>
-          </li>
-
-          <li>
-            <figure>
-              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
-            </figure>
-          </li>
-
-          <li>
-            <figure>
-              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
-            </figure>
-          </li>
-
-          <li>
-            <figure>
-              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
-            </figure>
-          </li>
-
-          <li>
-            <figure>
-              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
-            </figure>
-          </li>
-
-          <li>
-            <figure>
-              <img src="/placeholders/600x600.png" alt="Portrait of Sebastián" />
-            </figure>
-          </li>
-        </ul>
+        <InfiniteCarousel
+          items={CAROUSEL_ITEMS}
+          onHoverChange={setActiveCarouselIndex}
+          onContainerHoverChange={setIsCarouselHovered}
+        />
       </section>
 
-      <section ref={particleContainer} className="w-full h-full">
+      {/* Background video overlay — fades in over the particle canvas on carousel item hover */}
+      <BackgroundVideoOverlay isVisible={isVideoOverlayVisible} />
+
+      {/* Particle canvas — fades out while carousel item is hovered */}
+      <div
+        ref={particleContainer}
+        className={`w-full h-full transition-opacity duration-300 ${
+          isVideoOverlayVisible ? "opacity-0" : "opacity-100"
+        }`}
+      >
         {hasDimensions && (
           <ParticleCanvas
             width={particleContainerDimensions.width}
@@ -129,7 +123,7 @@ export default function HomePage() {
             prefetchIconPaths={PREFETCH_PATHS}
           />
         )}
-      </section>
+      </div>
     </main>
   )
 }
