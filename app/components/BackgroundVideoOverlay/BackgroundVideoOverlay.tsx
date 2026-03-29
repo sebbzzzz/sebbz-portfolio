@@ -1,22 +1,54 @@
 "use client"
 
+import { useMediaPreload } from "@/hooks/use-media-preload"
+
 interface BackgroundVideoOverlayProps {
   isVisible: boolean
+  /** Video source URL — takes precedence over imageSrc when both are provided */
   src?: string
+  /** Image source URL — used when no video src is available */
+  imageSrc?: string
 }
 
-export default function BackgroundVideoOverlay({ isVisible, src }: BackgroundVideoOverlayProps) {
+export default function BackgroundVideoOverlay({
+  isVisible,
+  src,
+  imageSrc,
+}: BackgroundVideoOverlayProps) {
+  // Preload whichever asset is active so there is no loading flash on first display
+  const activeSrc = src ?? imageSrc
+  const activeType = src ? "video" : imageSrc ? "image" : undefined
+  useMediaPreload(activeSrc, activeType)
+
   return (
     <div
-      className={`absolute inset-0 z-[5] transition-opacity duration-300 ${
+      className={`absolute inset-0 z-[5] transition-opacity duration-500 ${
         isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
       {src ? (
-        // Real video — provide a `src` prop when video assets are ready
-        <video src={src} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+        <video
+          src={src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="w-full h-full object-contain sm:object-cover"
+        />
+      ) : imageSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageSrc}
+          alt=""
+          loading="eager"
+          decoding="async"
+          // @ts-expect-error fetchpriority is a valid HTML attribute not yet in React typings
+          fetchpriority="high"
+          className="w-full h-full object-contain sm:object-cover"
+        />
       ) : (
-        // TODO: replace with real video — pass a `src` prop with the video URL when assets are available
+        // Fallback animated gradient — replace by passing src or imageSrc props
         <div
           style={{
             width: "100%",

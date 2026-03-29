@@ -4,21 +4,23 @@ import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 
 import { useDragMomentum } from "@/hooks/use-drag-momentum"
-
-export interface CarouselItem {
-  src: string
-  alt: string
-}
+import type { PortfolioItem } from "@/types/portfolio"
 
 interface InfiniteCarouselProps {
-  items: CarouselItem[]
+  items: PortfolioItem[]
+  pinnedIndex?: number | null
   onHoverChange?: (index: number | null) => void
+  onPinChange?: (index: number | null) => void
   onContainerHoverChange?: (hovered: boolean) => void
 }
 
+const CLICK_THRESHOLD_PX = 5
+
 export default function InfiniteCarousel({
   items,
+  pinnedIndex = null,
   onHoverChange,
+  onPinChange,
   onContainerHoverChange,
 }: InfiniteCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -40,7 +42,7 @@ export default function InfiniteCarousel({
     }
   }
 
-  const { isDragging, onPointerDown } = useDragMomentum(containerRef, {
+  const { isDragging, dragDistance, onPointerDown } = useDragMomentum(containerRef, {
     onAfterScroll: handleBoundaryJump,
   })
 
@@ -62,9 +64,9 @@ export default function InfiniteCarousel({
     return () => observer.disconnect()
   }, [])
 
-  // Autoplay: constant slow scroll, pauses on hover or drag
+  // Autoplay: constant slow scroll, pauses on hover, drag, or pin
   useEffect(() => {
-    if (isHovered || isDragging) return
+    if (isHovered || isDragging || pinnedIndex !== null) return
 
     let rafId: number
 
@@ -86,7 +88,13 @@ export default function InfiniteCarousel({
 
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-  }, [isDragging, isHovered])
+  }, [isDragging, isHovered, pinnedIndex])
+
+  function handleItemClick(realIndex: number) {
+    // Only treat as a click if the pointer barely moved (not a drag)
+    if (dragDistance.current >= CLICK_THRESHOLD_PX) return
+    onPinChange?.(realIndex === pinnedIndex ? null : realIndex)
+  }
 
   // Render three copies of the items for seamless infinite looping
   const tripled = [...items, ...items, ...items]
@@ -94,7 +102,7 @@ export default function InfiniteCarousel({
   return (
     <div
       ref={containerRef}
-      className="flex gap-5 overflow-x-hidden cursor-grab active:cursor-grabbing select-none"
+      className="flex gap-5 overflow-x-hidden cursor-grab active:cursor-grabbing select-none py-2"
       onPointerDown={onPointerDown}
       onMouseEnter={() => {
         setIsHovered(true)
@@ -104,39 +112,61 @@ export default function InfiniteCarousel({
         setIsHovered(false)
         setHoveredRealIndex(null)
         onContainerHoverChange?.(false)
+        onHoverChange?.(null)
       }}
     >
-      {tripled.map((item, i) => (
-        <figure
-          key={i}
-          onMouseEnter={() => {
-            if (!isDragging) {
-              setHoveredRealIndex(i % items.length)
-              onHoverChange?.(i % items.length)
-            }
-          }}
-          onMouseLeave={() => {
-            if (!isDragging) {
-              setHoveredRealIndex(null)
-              onHoverChange?.(null)
-            }
-          }}
-          className={`relative shrink-0 w-[calc(20vw-16px)] aspect-video overflow-hidden rounded-card transition-opacity duration-200 ${
-            hoveredRealIndex !== null && hoveredRealIndex !== i % items.length
-              ? "opacity-30"
-              : "opacity-100"
-          }`}
-        >
-          <Image
-            src={item.src}
-            alt={item.alt}
-            fill
-            draggable={false}
-            sizes="20vw"
-            className="object-cover"
-          />
-        </figure>
-      ))}
+      {tripled.map((item, i) => {
+        const realIndex = i % items.length
+        const isPinned = pinnedIndex === realIndex
+        const isActive = hoveredRealIndex === realIndex || isPinned
+        const isDimmed =
+          (hoveredRealIndex !== null || pinnedIndex !== null) &&
+          hoveredRealIndex !== realIndex &&
+          pinnedIndex !== realIndex
+
+        return (
+          <figure
+            key={i}
+            onMouseEnter={() => {
+              if (!isDragging) {
+                setHoveredRealIndex(realIndex)
+                onHoverChange?.(realIndex)
+              }
+            }}
+            onMouseLeave={() => {
+              if (!isDragging) {
+                setHoveredRealIndex(null)
+                onHoverChange?.(null)
+              }
+            }}
+            onClick={() => handleItemClick(realIndex)}
+            className={`relative shrink-0 w-[calc(20vw-16px)] aspect-video overflow-hidden rounded-card transition-all duration-200 cursor-pointer ${
+              isDimmed ? "opacity-30" : "opacity-100"
+            } ${isPinned ? "ring-2 ring-white/60 scale-[1.02]" : ""} ${isActive && !isPinned ? "ring-1 ring-white/30" : ""}`}
+          >
+            <Image
+              src={item.thumbnailSrc ?? "/placeholders/600x600.png"}
+              alt={item.title}
+              fill
+              draggable={false}
+              sizes="20vw"
+              className="object-cover"
+            />
+            {isPinned && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPinChange?.(null)
+                }}
+                aria-label="Close"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-xl transition-opacity duration-200 hover:bg-black/55"
+              >
+                ✕
+              </button>
+            )}
+          </figure>
+        )
+      })}
     </div>
   )
 }

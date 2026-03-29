@@ -15,6 +15,8 @@ interface UseDragMomentumOptions {
 interface DragMomentumResult<T extends HTMLElement> {
   isDragging: boolean
   scrollDelta: MutableRefObject<number>
+  /** Accumulated absolute drag distance in px since last pointer-down — use to distinguish click (<5px) from drag */
+  dragDistance: MutableRefObject<number>
   onPointerDown: (e: ReactPointerEvent<T>) => void
 }
 
@@ -29,6 +31,7 @@ export function useDragMomentum<T extends HTMLElement>(
   const velocitySamplesRef = useRef<number[]>([])
   const rafRef = useRef<number | null>(null)
   const scrollDelta = useRef(0)
+  const dragDistance = useRef(0)
   // Use a ref to always call the latest callback without stale closures
   const onAfterScrollRef = useRef(options?.onAfterScroll)
   onAfterScrollRef.current = options?.onAfterScroll
@@ -66,10 +69,12 @@ export function useDragMomentum<T extends HTMLElement>(
     lastTimeRef.current = performance.now()
     velocitySamplesRef.current = []
     scrollDelta.current = 0
+    dragDistance.current = 0 // reset accumulated distance on each pointer-down
 
-    // Capture pointer so move/up fire even if pointer leaves the element
-    el.setPointerCapture(e.pointerId)
-
+    // Use window listeners instead of setPointerCapture.
+    // Pointer capture redirects the `click` event to the capturing element,
+    // preventing onClick handlers on child elements (carousel items) from firing.
+    // Window listeners keep move/up active outside the container with the same effect.
     const handleMove = (ev: PointerEvent) => {
       const container = containerRef.current
       if (!container || !isDraggingRef.current) return
@@ -78,6 +83,8 @@ export function useDragMomentum<T extends HTMLElement>(
       // Clamp dt to guard against tab-switch freezes
       const dt = Math.min(now - lastTimeRef.current, MAX_DELTA_MS)
       const dx = ev.clientX - lastXRef.current
+
+      dragDistance.current += Math.abs(dx) // accumulate total distance
 
       if (dt > 0) {
         // Rolling average: convert dx/dt to px/frame at 60fps reference
@@ -111,15 +118,15 @@ export function useDragMomentum<T extends HTMLElement>(
         runDeceleration(clamped)
       }
 
-      el.removeEventListener("pointermove", handleMove)
-      el.removeEventListener("pointerup", handleUp)
-      el.removeEventListener("pointercancel", handleUp)
+      window.removeEventListener("pointermove", handleMove)
+      window.removeEventListener("pointerup", handleUp)
+      window.removeEventListener("pointercancel", handleUp)
     }
 
-    el.addEventListener("pointermove", handleMove)
-    el.addEventListener("pointerup", handleUp)
-    el.addEventListener("pointercancel", handleUp)
+    window.addEventListener("pointermove", handleMove)
+    window.addEventListener("pointerup", handleUp)
+    window.addEventListener("pointercancel", handleUp)
   }
 
-  return { isDragging, scrollDelta, onPointerDown }
+  return { isDragging, scrollDelta, dragDistance, onPointerDown }
 }

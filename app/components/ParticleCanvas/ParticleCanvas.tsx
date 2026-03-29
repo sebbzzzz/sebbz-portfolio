@@ -1,8 +1,10 @@
 "use client"
 
-import { useRef } from "react"
+import { useImperativeHandle, useRef, type Ref } from "react"
 import styles from "./ParticleCanvas.module.scss"
-import { useParticleEngine } from "./useParticleEngine"
+import { type ParticleEngineAPI, useParticleEngine } from "./useParticleEngine"
+
+export type { ParticleEngineAPI }
 
 interface ParticleCanvasProps {
   width: number
@@ -11,6 +13,8 @@ interface ParticleCanvasProps {
   iconPath?: string | null
   /** SVG paths to prefetch on mount so first hover has no loading delay */
   prefetchIconPaths?: string[]
+  /** Ref to access the particle engine's imperative escape/return API */
+  ref?: Ref<ParticleEngineAPI>
 }
 
 export default function ParticleCanvas({
@@ -18,9 +22,12 @@ export default function ParticleCanvas({
   height,
   iconPath = null,
   prefetchIconPaths = [],
+  ref,
 }: ParticleCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  useParticleEngine(canvasRef, width, height, iconPath, prefetchIconPaths)
+  const api = useParticleEngine(canvasRef, width, height, iconPath, prefetchIconPaths)
+
+  useImperativeHandle(ref, () => api)
 
   return <canvas ref={canvasRef} className={styles.canvas} />
 }

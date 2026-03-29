@@ -4,7 +4,9 @@ import { PARTICLE_CONFIG, RGB, WAVE_BRIGHTNESS_STEPS, WAVE_COLORS } from "./part
 
 export type ParticleShape = string | null
 
-type AnimState = "IDLE" | "FORMING" | "LOGO" | "DISPERSING"
+type AnimState = "IDLE" | "FORMING" | "LOGO" | "DISPERSING" | "ESCAPING" | "ESCAPED" | "RETURNING"
+
+const ESCAPE_DURATION_MS = 600
 
 interface Particle {
   char: string
@@ -19,6 +21,16 @@ interface Particle {
   targetY: number // lerp target y
   targetScale: number // lerp target scale
   inLogo: boolean // assigned to a logo pixel
+  // ── Escape / return animation ──────────────────────────────────────────────
+  escapeStartX: number // position when current escape/return tween began
+  escapeStartY: number
+  escapeTargetX: number // destination for current escape/return tween
+  escapeTargetY: number
+}
+
+export interface ParticleEngineAPI {
+  escape(onComplete: () => void): void
+  return(): void
 }
 
 // Characters from ASCII_MAP in _particlesExample.tsx
@@ -146,7 +158,7 @@ export function useParticleEngine(
   height: number,
   iconPath: ParticleShape,
   prefetchIconPaths: string[] = [],
-) {
+): ParticleEngineAPI {
   // All mutable animation state lives in refs — no React re-renders during rAF
   const particlesRef = useRef<Particle[]>([])
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
@@ -165,10 +177,26 @@ export function useParticleEngine(
   const iconPathRef = useRef<ParticleShape>(iconPath)
   // Bitmaps loaded from SVG — keyed by icon path, populated eagerly on mount
   const bitmapsRef = useRef<Record<string, number[][]>>({})
+  // ── Escape / return animation state ───────────────────────────────────────
+  const escapeStartTimeRef = useRef<number>(0)
+  const onEscapeCompleteRef = useRef<(() => void) | null>(null)
+  // Imperative API refs — set inside the main effect so they close over correct refs
+  const escapeRef = useRef<(onComplete: () => void) => void>(() => {})
+  const returnRef = useRef<() => void>(() => {})
 
   // Keep dim + path refs in sync every render (no effect needed)
   dimsRef.current = { width, height }
   iconPathRef.current = iconPath
+
+  // Stable API object — methods delegate to the inner refs set by the effect
+  const apiRef = useRef<ParticleEngineAPI>({
+    escape(onComplete) {
+      escapeRef.current(onComplete)
+    },
+    return() {
+      returnRef.current()
+    },
+  })
 
   // ── Main effect: canvas init + rAF loop ─────────────────────────────────
   useEffect(() => {
@@ -218,6 +246,10 @@ export function useParticleEngine(
             targetY: baseY,
             targetScale: 1,
             inLogo: false,
+            escapeStartX: baseX,
+            escapeStartY: baseY,
+            escapeTargetX: baseX,
+            escapeTargetY: baseY,
           })
         }
       }
@@ -235,6 +267,48 @@ export function useParticleEngine(
       }
     }
 
+    // ── Imperative API — defined here so they close over the correct refs ──
+    escapeRef.current = (onComplete: () => void) => {
+      const particles = particlesRef.current
+      const { width: w, height: h } = dimsRef.current
+      const diag = Math.hypot(w, h) * 1.2
+
+      const cx = w / 2
+      const cy = h / 2
+
+      for (const p of particles) {
+        const dx = p.baseX - cx
+        const dy = p.baseY - cy
+        // Radial from center — "opening space" effect.
+        // Particles near the exact center get a random direction to avoid clustering.
+        const angle =
+          Math.abs(dx) + Math.abs(dy) > 1 ? Math.atan2(dy, dx) : Math.random() * Math.PI * 2
+        p.escapeStartX = p.x
+        p.escapeStartY = p.y
+        p.escapeTargetX = cx + Math.cos(angle) * diag
+        p.escapeTargetY = cy + Math.sin(angle) * diag
+      }
+
+      escapeStartTimeRef.current = performance.now()
+      onEscapeCompleteRef.current = onComplete
+      animStateRef.current = "ESCAPING"
+    }
+
+    returnRef.current = () => {
+      const particles = particlesRef.current
+
+      for (const p of particles) {
+        p.escapeStartX = p.x
+        p.escapeStartY = p.y
+        p.escapeTargetX = p.baseX
+        p.escapeTargetY = p.baseY
+      }
+
+      onEscapeCompleteRef.current = null
+      escapeStartTimeRef.current = performance.now()
+      animStateRef.current = "RETURNING"
+    }
+
     // Eagerly prefetch bitmaps for all provided paths
     for (const path of prefetchIconPaths) {
       loadIconBitmap(path).then((bitmap) => {
@@ -250,8 +324,7 @@ export function useParticleEngine(
       const dt = Math.min(timestamp - prev, 50) // cap delta — avoids jumps after tab switch
 
       // ── Shine-sweep wave state machine ─────────────────────────────────
-      // Freeze the sweep while a logo animation is active so the diagonal
-      // gradient doesn't conflict with the formed icon shape.
+      // Freeze the sweep while any non-IDLE animation is active
       const SWEEP_END = 1.0 + PARTICLE_CONFIG.waveWidth
       if (animStateRef.current === "IDLE") {
         if (waveStateRef.current === "SWEEPING") {
@@ -291,6 +364,45 @@ export function useParticleEngine(
         }
       }
 
+      // ── Escape / return progress ─────────────────────────────────────────
+      // ESCAPED: particles are all off-screen — clear canvas and skip the render loop entirely
+      if (state === "ESCAPED") {
+        ctx.clearRect(0, 0, w, h)
+        return
+      }
+
+      let isEscapeAnim = false
+      let escapeAnimT = 0
+      if (state === "ESCAPING" || state === "RETURNING") {
+        isEscapeAnim = true
+        {
+          const elapsed = timestamp - escapeStartTimeRef.current
+          const t = Math.min(1, elapsed / ESCAPE_DURATION_MS)
+          escapeAnimT = state === "ESCAPING" ? t * t : 1 - (1 - t) * (1 - t) // ease-in / ease-out
+
+          if (t >= 1) {
+            if (state === "ESCAPING") {
+              animStateRef.current = "ESCAPED"
+              const cb = onEscapeCompleteRef.current
+              onEscapeCompleteRef.current = null
+              cb?.()
+            } else {
+              // RETURNING complete — back to idle
+              animStateRef.current = "IDLE"
+              transitionTRef.current = 0
+              // Re-trigger icon formation if the user is still hovering an item
+              if (iconPathRef.current) {
+                const bitmap = bitmapsRef.current[iconPathRef.current] ?? []
+                if (bitmap.length > 0) {
+                  assignToLogo(particlesRef.current, bitmap, w, h)
+                  animStateRef.current = "FORMING"
+                }
+              }
+            }
+          }
+        }
+      }
+
       // ── Draw frame ─────────────────────────────────────────────────────
       ctx.clearRect(0, 0, w, h)
       ctx.font = `${PARTICLE_CONFIG.fontSize}px ${PARTICLE_CONFIG.fontFamily}`
@@ -302,7 +414,8 @@ export function useParticleEngine(
       const mr = PARTICLE_CONFIG.mouseRadius
       const minS = PARTICLE_CONFIG.mouseScaleMin
       const curState = animStateRef.current
-      const isLogoAnim = curState !== "IDLE"
+      // Logo anim: only the dedicated logo formation states
+      const isLogoAnim = curState === "FORMING" || curState === "LOGO" || curState === "DISPERSING"
 
       // Precompute wave state for this frame
       const waveProgress = waveProgressRef.current
@@ -310,9 +423,8 @@ export function useParticleEngine(
       const waveTo = WAVE_COLORS[waveColorIdxRef.current]
       const waveWidth = PARTICLE_CONFIG.waveWidth
       // Build stops: fromColor → waveTo scaled by each brightness step
-      // WAVE_BRIGHTNESS_STEPS already ends at 1.0 (full toColor)
       const allStops: RGB[] = [waveFrom, ...WAVE_BRIGHTNESS_STEPS.map((b) => scaleRGB(waveTo, b))]
-      const segCount = allStops.length - 1 // number of segments between stops
+      const segCount = allStops.length - 1
 
       for (const p of particlesRef.current) {
         // ── Multi-stop gradient sweep color for this particle ─────────────
@@ -320,42 +432,40 @@ export function useParticleEngine(
         const behind = waveProgress - diag // negative = wave not yet arrived
         let waveRGB: RGB
         if (behind <= 0) {
-          // Wave hasn't reached this particle yet
           waveRGB = waveFrom
         } else if (behind < waveWidth) {
-          // Particle is inside the gradient band — interpolate through all stops
-          const t = behind / waveWidth // 0 = leading edge, 1 = trailing edge
-          const seg = t * segCount // which segment (float)
+          const t = behind / waveWidth
+          const seg = t * segCount
           const segIdx = Math.min(Math.floor(seg), segCount - 1)
-          const segT = smoothstep(seg - segIdx) // t within this segment
+          const segT = smoothstep(seg - segIdx)
           waveRGB = lerpRGB(allStops[segIdx], allStops[segIdx + 1], segT)
         } else {
-          // Wave has fully passed — settled to new color
           waveRGB = waveTo
         }
 
-        let tx: number
-        let ty: number
-        let ts: number
-
-        if (isLogoAnim) {
-          // ── Logo formation / dispersal ──────────────────────────────────
-          tx = p.targetX
-          ty = p.targetY
-          ts = p.targetScale
+        // ── Position / scale update ────────────────────────────────────────
+        if (isEscapeAnim) {
+          // Direct position control — bypasses lerp for time-based animation
+          p.x = p.escapeStartX + (p.escapeTargetX - p.escapeStartX) * escapeAnimT
+          p.y = p.escapeStartY + (p.escapeTargetY - p.escapeStartY) * escapeAnimT
+          p.scale = 1
+        } else if (isLogoAnim) {
+          p.x += (p.targetX - p.x) * ls
+          p.y += (p.targetY - p.y) * ls
+          p.scale += (p.targetScale - p.scale) * ls
         } else {
-          // ── Idle oscillation ───────────────────────────────────────────
+          // ── Idle oscillation ─────────────────────────────────────────────
           const ox =
             Math.sin(timestamp * PARTICLE_CONFIG.idleFrequency + p.phaseX) *
             PARTICLE_CONFIG.idleAmplitudeX
           const oy =
             Math.cos(timestamp * PARTICLE_CONFIG.idleFrequency + p.phaseY) *
             PARTICLE_CONFIG.idleAmplitudeY
-          tx = p.baseX + ox
-          ty = p.baseY + oy
-          ts = 1
+          let tx = p.baseX + ox
+          let ty = p.baseY + oy
+          let ts = 1
 
-          // ── Z-axis mouse scatter ────────────────────────────────────────
+          // ── Z-axis mouse scatter ──────────────────────────────────────────
           if (mx > -9000) {
             const dx = p.x - mx
             const dy = p.y - my
@@ -370,12 +480,11 @@ export function useParticleEngine(
               }
             }
           }
-        }
 
-        // ── Lerp toward targets ─────────────────────────────────────────
-        p.x += (tx - p.x) * ls
-        p.y += (ty - p.y) * ls
-        p.scale += (ts - p.scale) * ls
+          p.x += (tx - p.x) * ls
+          p.y += (ty - p.y) * ls
+          p.scale += (ts - p.scale) * ls
+        }
 
         if (p.scale < 0.01) continue // skip invisible
 
@@ -422,12 +531,17 @@ export function useParticleEngine(
       canvas.removeEventListener("mousemove", handleMouseMove)
       canvas.removeEventListener("mouseleave", handleMouseLeave)
     }
-  }, [width, height]) // re-runs on resize
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width, height]) // re-runs on resize; canvasRef is stable, prefetchIconPaths intentionally on mount only
 
   // ── iconPath effect: trigger logo formation / dispersal ─────────────────
   useEffect(() => {
     const particles = particlesRef.current
     if (particles.length === 0) return // not yet initialized
+
+    // Don't interrupt escape/return animations
+    const cur = animStateRef.current
+    if (cur === "ESCAPING" || cur === "ESCAPED" || cur === "RETURNING") return
 
     const { width: w, height: h } = dimsRef.current
 
@@ -437,11 +551,12 @@ export function useParticleEngine(
       animStateRef.current = "FORMING"
       transitionTRef.current = 0
     } else {
-      const cur = animStateRef.current
       if (cur === "FORMING" || cur === "LOGO") {
         clearLogoAssignment(particles)
         animStateRef.current = "DISPERSING"
       }
     }
   }, [iconPath])
+
+  return apiRef.current
 }
