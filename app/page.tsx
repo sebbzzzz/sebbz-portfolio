@@ -15,13 +15,11 @@ const SOCIAL_LINKS: SocialLink[] = [
   {
     label: "Linkedin",
     href: "https://www.linkedin.com/in/sebbz/",
-    target: "_blank",
     iconPath: "/icons/linkedin.svg",
   },
   {
     label: "Github",
     href: "https://github.com/sebbz",
-    target: "_blank",
     iconPath: "/icons/github.svg",
   },
   {
@@ -38,7 +36,7 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
     description: "Full-stack web platform built for a growing brand.",
     link: "https://escalarveinte18.com",
     thumbnailSrc: "/portfolio/escalar/escalar-thumbnail.png",
-    mediaSrc: "/portfolio/escalar/escalar-demo.mov",
+    mediaSrc: "/portfolio/escalar/escalar-demo.webm",
     mediaType: "video",
     iconPath: "/icons/linkedin.svg",
   },
@@ -241,7 +239,7 @@ export default function HomePage() {
   return (
     <main className="relative w-svw h-svh">
       <section
-        className={`flex flex-col justify-center gap-8 absolute top-5 left-5 max-w-4/12 z-10 glass-panel p-5 transition-opacity duration-500 ${
+        className={`flex flex-col justify-center gap-8 absolute top-5 left-5 right-5 max-w-4/12 z-10 glass-panel p-5 transition-opacity duration-500 ${
           pinnedIndex !== null ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
@@ -260,7 +258,7 @@ export default function HomePage() {
       </section>
 
       {/* Portfolio item info panel — fades in/out with the intro panel */}
-      <CarouselItemInfoPanel item={revealedItem} isVisible={isInfoPanelVisible} />
+      {revealedItem && <CarouselItemInfoPanel item={revealedItem} isVisible={isInfoPanelVisible} />}
 
       <section className="absolute bottom-10 inset-x-0 z-10">
         <InfiniteCarousel
