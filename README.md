@@ -50,3 +50,5 @@ Run `yarn lint` to execute ESLint with the `next/core-web-vitals` rule-set. Conf
 ## Deployment
 
 After running `yarn build`, deploy the generated `.next/` output using platforms such as Vercel, Netlify, or any Node-compatible host.
+
+🤘
