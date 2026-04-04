@@ -32,25 +32,25 @@ const SOCIAL_LINKS: SocialLink[] = [
 const PORTFOLIO_ITEMS: PortfolioItem[] = [
   {
     id: "escalar",
-    title: "Escalar",
+    title: "Escalar Veinte18",
     description:
       "Custom WordPress website built from scratch for Escalar Veinte18, a Colombian and Spanish real estate design and construction firm. Crafted to reflect their multidisciplinary approach, combining architecture, project management, and creative problem-solving into a compelling digital presence.",
     link: "https://escalarveinte18.com",
     thumbnailSrc: "/portfolio/escalar/escalar-thumbnail.png",
     mediaSrc: "/portfolio/escalar/escalar-demo.webm",
     mediaType: "video",
-    iconPath: "/icons/linkedin.svg",
+    iconPath: "/icons/eye.svg",
   },
   {
     id: "hearst",
-    title: "Hearst",
+    title: "Hearst Advertising",
     description:
       "High-performance advertising platform for Hearst Magazines, built with Next.js and Sanity CMS. Developed alongside <a href='https://www.stinkstudios.com/' target='_blank' rel='noopener noreferrer'>Stink Studios</a> and <a href='https://www.studiocontra.co/' target='_blank' rel='noopener noreferrer'>Studio Contra</a>, featuring fluid animations and a tailored content management system to showcase one of the world's most iconic media portfolios.",
     link: "https://advertising.hearstmagazines.com",
     thumbnailSrc: "/portfolio/hearst/hearst-thumbnail.png",
     mediaSrc: "/portfolio/hearst/hearst-demo.mov",
     mediaType: "video",
-    iconPath: "/icons/github.svg",
+    iconPath: "/icons/eye.svg",
   },
   {
     id: "petgold",
@@ -61,7 +61,7 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
     thumbnailSrc: "/portfolio/petgold/petgold-thumbnail.png",
     mediaSrc: "/portfolio/petgold/petgold-demo.mov",
     mediaType: "video",
-    iconPath: "/icons/mail.svg",
+    iconPath: "/icons/eye.svg",
   },
   {
     id: "tinta-impresa",
@@ -72,18 +72,18 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
     thumbnailSrc: "/portfolio/tinta-impresa/tinta-impresa-thumbnail.png",
     mediaSrc: "/portfolio/tinta-impresa/tinta-impresa-demo.mov",
     mediaType: "video",
-    iconPath: "/icons/linkedin.svg",
+    iconPath: "/icons/eye.svg",
   },
   {
     id: "del-vecchio",
-    title: "Del Vecchio",
+    title: "Quesos Del Vecchio",
     description:
       "Custom WordPress theme and full digital experience built from scratch in collaboration with <a href='https://www.studiocontra.co/' target='_blank' rel='noopener noreferrer'>Studio Contra</a>, translating a century-old cheese brand's identity into a rich, story-driven website with custom templates, content structure, and UI components.",
     link: "https://delvecchio.com.co",
     thumbnailSrc: "/portfolio/del-vecchio/del-vecchio-thumbnail.png",
     mediaSrc: "/portfolio/del-vecchio/del-vecchio-demo.mov",
     mediaType: "video",
-    iconPath: "/icons/github.svg",
+    iconPath: "/icons/eye.svg",
   },
   {
     id: "sumotype",
@@ -94,7 +94,7 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
     thumbnailSrc: "/portfolio/sumotype/sumotype-thumbnail.png",
     mediaSrc: "/portfolio/sumotype/sumotype-demo.mov",
     mediaType: "video",
-    iconPath: "/icons/linkedin.svg",
+    iconPath: "/icons/eye.svg",
   },
 ]
 

@@ -75,7 +75,7 @@ export default function InfiniteCarousel({
       const tw = trackWidthRef.current
       if (el && tw > 0) {
         // Read BEFORE write — layout is clean at rAF start, no forced reflow
-        let sl = el.scrollLeft + 1
+        let sl = el.scrollLeft + 0.3
         if (sl >= tw * 2) {
           sl -= tw
         } else if (sl < tw) {
@@ -141,7 +141,11 @@ export default function InfiniteCarousel({
             }}
             onClick={() => handleItemClick(realIndex)}
             className={`relative shrink-0 w-[calc(72vw-16px)] sm:w-[calc(40vw-16px)] md:w-[calc(28vw-16px)] lg:w-[calc(20vw-16px)] aspect-video overflow-hidden rounded-card transition-all duration-200 cursor-pointer ${
-              isDimmed ? "opacity-30" : "opacity-100"
+              isActive
+                ? "grayscale-0 brightness-105"
+                : isDimmed
+                  ? "grayscale brightness-50 opacity-40"
+                  : "grayscale brightness-75"
             } ${isPinned ? "ring-2 ring-white/60 scale-[1.02]" : ""} ${isActive && !isPinned ? "ring-1 ring-white/30" : ""}`}
           >
             <Image
@@ -167,7 +171,7 @@ export default function InfiniteCarousel({
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="w-12 h-12"
+                  className="w-10 h-10"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
