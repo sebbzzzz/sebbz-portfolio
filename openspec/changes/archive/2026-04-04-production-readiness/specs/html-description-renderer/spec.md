@@ -1,3 +1,5 @@
+## MODIFIED Requirements
+
 ### Requirement: HTML description rendering
 
 The system SHALL render portfolio item `description` strings as parsed HTML, converting any valid HTML markup (e.g. anchor tags) into real DOM elements rather than displaying them as escaped text. All anchor tags produced by the renderer SHALL carry `rel="noopener noreferrer"` regardless of whether the source markup includes it.

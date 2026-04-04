@@ -11,7 +11,12 @@ const DESCRIPTION_PARSE_OPTIONS: HTMLReactParserOptions = {
     if (node.type === "tag" && "name" in node && node.name === "a") {
       const el = node as { attribs: Record<string, string>; children: DOMNode[] }
       return (
-        <a {...attributesToProps(el.attribs)} className="text-md font-bold hover:underline">
+        // rel is always set after spread to enforce noopener noreferrer regardless of source markup
+        <a
+          {...attributesToProps(el.attribs)}
+          rel="noopener noreferrer"
+          className="text-md font-bold hover:underline"
+        >
           {domToReact(el.children)}
         </a>
       )
@@ -30,6 +35,7 @@ export default function CarouselItemInfoPanel({ item, isVisible }: CarouselItemI
       className={`flex flex-col absolute top-3 left-3 right-3 md:top-5 md:left-5 md:right-5 w-auto md:max-w-5/12 lg:max-w-5/12 z-20 glass-panel p-5 transition-opacity duration-500 gap-8 ${
         isVisible && item ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
+      aria-label="Project details"
       aria-live="polite"
       aria-atomic="true"
     >

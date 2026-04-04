@@ -1,5 +1,3 @@
-import React from "react"
-
 interface LinkProps {
   label: string
   href: string
@@ -14,6 +12,7 @@ const Link = (props: LinkProps) => {
     <a
       href={props.href}
       target={props.target}
+      rel={props.target === "_blank" ? "noopener noreferrer" : undefined}
       onMouseEnter={props.onMouseEnter}
       onMouseLeave={props.onMouseLeave}
       className="text-md font-bold hover:underline inline-flex items-center gap-1"

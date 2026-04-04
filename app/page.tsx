@@ -259,7 +259,10 @@ export default function HomePage() {
       {/* Portfolio item info panel — fades in/out with the intro panel */}
       {revealedItem && <CarouselItemInfoPanel item={revealedItem} isVisible={isInfoPanelVisible} />}
 
-      <section className="absolute bottom-6 md:bottom-10 inset-x-0 z-10">
+      <section
+        aria-label="Portfolio projects"
+        className="absolute bottom-6 md:bottom-10 inset-x-0 z-10"
+      >
         <InfiniteCarousel
           items={PORTFOLIO_ITEMS}
           pinnedIndex={pinnedIndex}

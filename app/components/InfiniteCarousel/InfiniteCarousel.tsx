@@ -28,6 +28,8 @@ export default function InfiniteCarousel({
   const trackWidthRef = useRef(0)
   const [isHovered, setIsHovered] = useState(false)
   const [hoveredRealIndex, setHoveredRealIndex] = useState<number | null>(null)
+  // Tracks the "active" item index for keyboard navigation (Arrow keys advance, Enter/Space pins)
+  const keyboardIndexRef = useRef(0)
 
   // Boundary jump: receives the value just written — zero DOM reads, zero reflows
   function handleBoundaryJump(newScrollLeft: number) {
@@ -96,14 +98,42 @@ export default function InfiniteCarousel({
     onPinChange?.(realIndex === pinnedIndex ? null : realIndex)
   }
 
-  // Render three copies of the items for seamless infinite looping
+  function handleContainerKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const el = containerRef.current
+    if (!el) return
+
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      e.preventDefault()
+      const firstItem = el.firstElementChild as HTMLElement | null
+      // gap-5 = 20px; add to item width to advance by one full slot
+      const itemWidth = firstItem ? firstItem.offsetWidth + 20 : 200
+      const direction = e.key === "ArrowRight" ? 1 : -1
+      el.scrollLeft += direction * itemWidth
+      keyboardIndexRef.current =
+        (keyboardIndexRef.current + direction + items.length) % items.length
+    }
+
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault()
+      const idx = keyboardIndexRef.current
+      onPinChange?.(idx === pinnedIndex ? null : idx)
+    }
+  }
+
+  // Render three copies of the items for seamless infinite looping.
+  // Middle copy (i >= items.length && i < items.length * 2) is the canonical set;
+  // the first and last copies are clones hidden from assistive technology.
   const tripled = [...items, ...items, ...items]
 
   return (
     <div
       ref={containerRef}
-      className="flex gap-5 overflow-x-hidden cursor-grab active:cursor-grabbing select-none py-2"
+      role="region"
+      aria-label="Portfolio projects"
+      tabIndex={0}
+      className="flex gap-5 overflow-x-hidden cursor-grab active:cursor-grabbing select-none py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       onPointerDown={onPointerDown}
+      onKeyDown={handleContainerKeyDown}
       onMouseEnter={() => {
         setIsHovered(true)
         onContainerHoverChange?.(true)
@@ -123,10 +153,16 @@ export default function InfiniteCarousel({
           (hoveredRealIndex !== null || pinnedIndex !== null) &&
           hoveredRealIndex !== realIndex &&
           pinnedIndex !== realIndex
+        // First and last copies are scroll clones — hide from assistive technology
+        const isClone = i < items.length || i >= items.length * 2
 
         return (
           <figure
             key={i}
+            role="listitem"
+            aria-label={isClone ? undefined : item.title}
+            aria-pressed={isClone ? undefined : isPinned}
+            aria-hidden={isClone ? true : undefined}
             onMouseEnter={() => {
               if (!isDragging) {
                 setHoveredRealIndex(realIndex)
@@ -152,17 +188,14 @@ export default function InfiniteCarousel({
               src={item.thumbnailSrc ?? "/placeholders/600x600.png"}
               alt={item.title}
               fill
+              priority={!isClone && realIndex < 3}
               draggable={false}
               sizes="(max-width: 639px) 72vw, (max-width: 767px) 40vw, (max-width: 1023px) 28vw, 20vw"
               className="object-cover"
             />
             {isPinned && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPinChange?.(null)
-                }}
-                aria-label="Close"
+              <div
+                aria-hidden="true"
                 className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-xl transition-opacity duration-200 hover:bg-black/55"
               >
                 <svg
@@ -175,7 +208,7 @@ export default function InfiniteCarousel({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
-              </button>
+              </div>
             )}
           </figure>
         )
