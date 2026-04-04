@@ -140,7 +140,7 @@ export default function InfiniteCarousel({
               }
             }}
             onClick={() => handleItemClick(realIndex)}
-            className={`relative shrink-0 w-[calc(20vw-16px)] aspect-video overflow-hidden rounded-card transition-all duration-200 cursor-pointer ${
+            className={`relative shrink-0 w-[calc(72vw-16px)] sm:w-[calc(40vw-16px)] md:w-[calc(28vw-16px)] lg:w-[calc(20vw-16px)] aspect-video overflow-hidden rounded-card transition-all duration-200 cursor-pointer ${
               isDimmed ? "opacity-30" : "opacity-100"
             } ${isPinned ? "ring-2 ring-white/60 scale-[1.02]" : ""} ${isActive && !isPinned ? "ring-1 ring-white/30" : ""}`}
           >
@@ -149,7 +149,7 @@ export default function InfiniteCarousel({
               alt={item.title}
               fill
               draggable={false}
-              sizes="20vw"
+              sizes="(max-width: 639px) 72vw, (max-width: 767px) 40vw, (max-width: 1023px) 28vw, 20vw"
               className="object-cover"
             />
             {isPinned && (
@@ -161,7 +161,16 @@ export default function InfiniteCarousel({
                 aria-label="Close"
                 className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-xl transition-opacity duration-200 hover:bg-black/55"
               >
-                ✕
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="w-12 h-12"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
               </button>
             )}
           </figure>

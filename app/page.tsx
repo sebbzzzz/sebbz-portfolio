@@ -33,7 +33,8 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
   {
     id: "escalar",
     title: "Escalar",
-    description: "Full-stack web platform built for a growing brand.",
+    description:
+      "Custom WordPress website built from scratch for Escalar Veinte18, a Colombian and Spanish real estate design and construction firm. Crafted to reflect their multidisciplinary approach, combining architecture, project management, and creative problem-solving into a compelling digital presence.",
     link: "https://escalarveinte18.com",
     thumbnailSrc: "/portfolio/escalar/escalar-thumbnail.png",
     mediaSrc: "/portfolio/escalar/escalar-demo.webm",
@@ -43,7 +44,8 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
   {
     id: "hearst",
     title: "Hearst",
-    description: "Advertising platform for Hearst Magazines digital properties.",
+    description:
+      "High-performance advertising platform for Hearst Magazines, built with Next.js and Sanity CMS. Developed alongside <a href='https://www.stinkstudios.com/' target='_blank' rel='noopener noreferrer'>Stink Studios</a> and <a href='https://www.studiocontra.co/' target='_blank' rel='noopener noreferrer'>Studio Contra</a>, featuring fluid animations and a tailored content management system to showcase one of the world's most iconic media portfolios.",
     link: "https://advertising.hearstmagazines.com",
     thumbnailSrc: "/portfolio/hearst/hearst-thumbnail.png",
     mediaSrc: "/portfolio/hearst/hearst-demo.mov",
@@ -53,7 +55,8 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
   {
     id: "petgold",
     title: "Petgold",
-    description: "E-commerce experience for a premium pet care brand.",
+    description:
+      "Custom WordPress and WooCommerce storefront built from scratch for Petgold, a complete e-commerce destination for pet lovers. Designed and developed to deliver a smooth shopping experience across a wide catalog of pet food, accessories, and everyday essentials for every kind of animal companion.",
     link: "https://petgold.com.co",
     thumbnailSrc: "/portfolio/petgold/petgold-thumbnail.png",
     mediaSrc: "/portfolio/petgold/petgold-demo.mov",
@@ -63,7 +66,8 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
   {
     id: "tinta-impresa",
     title: "Tinta Impresa",
-    description: "Editorial web presence for a Colombian print and design studio.",
+    description:
+      "Award-winning digital platform for Fundación para el fomento de la lectura, built from scratch on WordPress — custom theme, content management system, and full UI/UX. Crafted in collaboration with <a href='https://www.studiocontra.co/' target='_blank' rel='noopener noreferrer'>Studio Contra</a> to promote reading culture across Latin America. Recognized with a Silver at the Latin America Design Awards 2024.",
     link: "https://tintaimpresa.com.co",
     thumbnailSrc: "/portfolio/tinta-impresa/tinta-impresa-thumbnail.png",
     mediaSrc: "/portfolio/tinta-impresa/tinta-impresa-demo.mov",
@@ -73,7 +77,8 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
   {
     id: "del-vecchio",
     title: "Del Vecchio",
-    description: "Luxury occasions catalogue with immersive product presentation.",
+    description:
+      "Custom WordPress theme and full digital experience built from scratch in collaboration with <a href='https://www.studiocontra.co/' target='_blank' rel='noopener noreferrer'>Studio Contra</a>, translating a century-old cheese brand's identity into a rich, story-driven website with custom templates, content structure, and UI components.",
     link: "https://delvecchio.com.co",
     thumbnailSrc: "/portfolio/del-vecchio/del-vecchio-thumbnail.png",
     mediaSrc: "/portfolio/del-vecchio/del-vecchio-demo.mov",
@@ -81,19 +86,10 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
     iconPath: "/icons/github.svg",
   },
   {
-    id: "sibs",
-    title: "Sibs",
-    description: "High-performance marketing site with custom interactive elements.",
-    link: "https://maspxr.com",
-    thumbnailSrc: "/portfolio/sibs/sibs-thumbnail.png",
-    mediaSrc: "/portfolio/sibs/sibs-demo.mov",
-    mediaType: "video",
-    iconPath: "/icons/mail.svg",
-  },
-  {
     id: "sumotype",
-    title: "Sumo Type",
-    description: "Type foundry showcase — expressive typography meets clean interaction design.",
+    title: "Sumotype",
+    description:
+      "Custom Shopify storefront built from scratch for Sumotype, a Bogotá-based type foundry and design studio. Every detail — theme, UX, and commerce system — crafted to reflect their historically rooted, high-quality typefaces designed for branding and communication environments across Latin America.",
     link: "https://sumotype.com",
     thumbnailSrc: "/portfolio/sumotype/sumotype-thumbnail.png",
     mediaSrc: "/portfolio/sumotype/sumotype-demo.mov",
@@ -239,18 +235,21 @@ export default function HomePage() {
   return (
     <main className="relative w-svw h-svh">
       <section
-        className={`flex flex-col justify-center gap-8 absolute top-5 left-5 right-5 max-w-4/12 z-10 glass-panel p-5 transition-opacity duration-500 ${
+        className={`flex flex-col justify-center gap-8 absolute top-3 left-3 right-3 md:top-5 md:left-5 md:right-5 w-auto md:max-w-6/12 lg:max-w-5/12 z-10 glass-panel p-5 transition-opacity duration-500 ${
           pinnedIndex !== null ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
         <div className="grid gap-2">
-          <h1 className="text-2xl">
+          <h1 className="text-xl lg:text-2xl">
             Hello! <strong>I&apos;m Sebastián,</strong>
           </h1>
 
-          <p className="text-md">
-            I really enjoy creating visually captivating projects that adhere to rigorous standards
-            of performance, accessibility, and coding best practices.
+          <p className="text-sm md:text-base leading-relaxed">
+            Full-stack engineer with seven years of experience who genuinely loves building things
+            that look great and work even better. I bring a background in animation and creative
+            production into every interface I craft — pairing that eye for detail with React,
+            TypeScript, and AI-powered workflows to ship faster, prototype smarter, and push ideas
+            further.
           </p>
         </div>
 
@@ -260,7 +259,7 @@ export default function HomePage() {
       {/* Portfolio item info panel — fades in/out with the intro panel */}
       {revealedItem && <CarouselItemInfoPanel item={revealedItem} isVisible={isInfoPanelVisible} />}
 
-      <section className="absolute bottom-10 inset-x-0 z-10">
+      <section className="absolute bottom-6 md:bottom-10 inset-x-0 z-10">
         <InfiniteCarousel
           items={PORTFOLIO_ITEMS}
           pinnedIndex={pinnedIndex}

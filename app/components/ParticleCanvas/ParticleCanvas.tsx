@@ -3,6 +3,7 @@
 import { useImperativeHandle, useRef, type Ref } from "react"
 import styles from "./ParticleCanvas.module.scss"
 import { type ParticleEngineAPI, useParticleEngine } from "./useParticleEngine"
+import { useResponsiveParticleConfig } from "./useResponsiveParticleConfig"
 
 export type { ParticleEngineAPI }
 
@@ -25,7 +26,8 @@ export default function ParticleCanvas({
   ref,
 }: ParticleCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const api = useParticleEngine(canvasRef, width, height, iconPath, prefetchIconPaths)
+  const config = useResponsiveParticleConfig()
+  const api = useParticleEngine(canvasRef, width, height, iconPath, prefetchIconPaths, config)
 
   useImperativeHandle(ref, () => api)
 

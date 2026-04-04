@@ -11,15 +11,15 @@ interface CarouselItemInfoPanelProps {
 export default function CarouselItemInfoPanel({ item, isVisible }: CarouselItemInfoPanelProps) {
   return (
     <section
-      className={`flex flex-col absolute top-5 left-5 right-5 z-20 glass-panel p-5 max-w-4/12 transition-opacity duration-500 gap-8 ${
+      className={`flex flex-col absolute top-3 left-3 right-3 md:top-5 md:left-5 md:right-5 w-auto md:max-w-5/12 lg:max-w-5/12 z-20 glass-panel p-5 transition-opacity duration-500 gap-8 ${
         isVisible && item ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       aria-live="polite"
       aria-atomic="true"
     >
       <div className="grid gap-2">
-        <h2 className="text-2xl mb-1 font-bold">{item.title}</h2>
-        <p className="text-md leading-relaxed">{item.description}</p>
+        <h2 className="text-xl lg:text-2xl mb-1 font-bold">{item.title}</h2>
+        <p className="text-sm md:text-base leading-relaxed">{item.description}</p>
       </div>
 
       {item.link && <Link label="View project" href={item.link} target="_blank" />}

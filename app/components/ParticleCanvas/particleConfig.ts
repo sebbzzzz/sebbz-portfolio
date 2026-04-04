@@ -35,16 +35,19 @@ export const MONOSPACE_FONT_STACK = [
 export const PARTICLE_CONFIG = {
   fontSize: 14,
   fontFamily: MONOSPACE_FONT_STACK,
-  charCellHeight: 18,
+  charCellHeight: 30,
   idleAmplitudeX: 1.5, // px max horizontal oscillation
   idleAmplitudeY: 1.5, // px max vertical oscillation
   idleFrequency: 0.001, // rad/ms — full cycle ~7.8s
   waveSpeed: 0.002, // progress advance per ms — full sweep ~1.9s (0→1.3)
   waveWidth: 1.0, // gradient band width — values >1.0 exceed the full diagonal so the entire canvas is inside the gradient at once
   wavePauseDurationMs: 5000, // ms the color holds between sweeps
-  mouseRadius: 80, // px — scatter effect radius
+  mouseRadius: 100, // px — scatter effect radius
   mouseScaleMin: 0.2, // min scale at cursor center
   lerpSpeed: 0.15, // per-frame lerp factor
   transitionDurationMs: 200,
-  logoBackgroundScale: 0.1, // scale of non-logo particles during icon formation
-} as const
+  logoBackgroundScale: 0.01, // scale of non-logo particles during icon formation
+  logoScale: 0.45, // fraction of canvas height used for the logo on hover
+}
+
+export type ParticleConfig = typeof PARTICLE_CONFIG

@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Full-viewport overlay with fade transition
 
@@ -19,33 +19,7 @@ The background video overlay SHALL cover the full viewport using `inset-0` posit
 - **WHEN** the overlay is visible on a mobile viewport with dynamic browser chrome
 - **THEN** the overlay SHALL fill the small viewport height without scrollbars or clipping
 
-### Requirement: Placeholder mode when no video src is provided
-
-When no `src` prop is given, the overlay SHALL render an animated CSS gradient as a placeholder. When a `src` prop is provided, it SHALL render a muted, looping, auto-playing `<video>` element.
-
-#### Scenario: No src renders animated gradient
-
-- **WHEN** the overlay is rendered without a `src` prop
-- **THEN** a `<div>` with a looping CSS `@keyframes` gradient animation SHALL be displayed as the background
-
-#### Scenario: src renders video element
-
-- **WHEN** the overlay is rendered with a `src` prop pointing to a video file
-- **THEN** a `<video>` element SHALL be rendered with `autoPlay`, `loop`, `muted`, and `playsInline` attributes, and the gradient placeholder SHALL not be rendered
-
-### Requirement: Particle canvas hides while overlay is visible
-
-The particle canvas SHALL be visually suppressed (opacity 0) while the background video overlay is visible, and SHALL be restored when the overlay is hidden.
-
-#### Scenario: Canvas hidden during overlay
-
-- **WHEN** the overlay `isVisible` is `true`
-- **THEN** the `ParticleCanvas` container SHALL have `opacity: 0`
-
-#### Scenario: Canvas restored after overlay hides
-
-- **WHEN** the overlay `isVisible` transitions back to `false`
-- **THEN** the `ParticleCanvas` container SHALL transition back to `opacity: 1`
+## ADDED Requirements
 
 ### Requirement: Correct object-fit defaults across viewport sizes
 

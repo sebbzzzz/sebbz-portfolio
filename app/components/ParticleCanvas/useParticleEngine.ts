@@ -1,6 +1,12 @@
 import { RefObject, useEffect, useRef } from "react"
 import { loadIconBitmap } from "./loadIconBitmap"
-import { PARTICLE_CONFIG, RGB, WAVE_BRIGHTNESS_STEPS, WAVE_COLORS } from "./particleConfig"
+import {
+  PARTICLE_CONFIG,
+  type ParticleConfig,
+  RGB,
+  WAVE_BRIGHTNESS_STEPS,
+  WAVE_COLORS,
+} from "./particleConfig"
 
 export type ParticleShape = string | null
 
@@ -77,12 +83,13 @@ function computeLogoTargets(
   bitmap: number[][],
   w: number,
   h: number,
+  logoScale: number,
 ): Array<{ x: number; y: number }> {
   if (!bitmap || bitmap.length === 0) return []
 
   const bRows = bitmap.length
   const bCols = bitmap[0].length
-  const cellSize = (h * 0.6) / bRows
+  const cellSize = (h * logoScale) / bRows
   const totalW = bCols * cellSize
   const totalH = bRows * cellSize
   const startX = (w - totalW) / 2
@@ -102,15 +109,22 @@ function computeLogoTargets(
   return targets
 }
 
-function assignToLogo(particles: Particle[], bitmap: number[][], w: number, h: number) {
-  const targets = computeLogoTargets(bitmap, w, h)
+function assignToLogo(
+  particles: Particle[],
+  bitmap: number[][],
+  w: number,
+  h: number,
+  logoScale: number,
+  logoBackgroundScale: number,
+) {
+  const targets = computeLogoTargets(bitmap, w, h, logoScale)
 
   // Reset all particles — non-logo ones will scale down
   for (const p of particles) {
     p.inLogo = false
     p.targetX = p.baseX
     p.targetY = p.baseY
-    p.targetScale = PARTICLE_CONFIG.logoBackgroundScale
+    p.targetScale = logoBackgroundScale
   }
 
   const used = new Uint8Array(particles.length)
@@ -158,12 +172,15 @@ export function useParticleEngine(
   height: number,
   iconPath: ParticleShape,
   prefetchIconPaths: string[] = [],
+  config: ParticleConfig = PARTICLE_CONFIG,
 ): ParticleEngineAPI {
   // All mutable animation state lives in refs — no React re-renders during rAF
   const particlesRef = useRef<Particle[]>([])
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const rafRef = useRef<number>(0)
   const mouseRef = useRef({ x: -9999, y: -9999 })
+  const configRef = useRef(config)
+  configRef.current = config
   // ── Shine-sweep wave state ─────────────────────────────────────────────────
   const waveProgressRef = useRef(0) // 0 → ~1.3 during sweep, then resets
   const waveStateRef = useRef<"SWEEPING" | "PAUSING">("PAUSING") // start paused so first sweep is delayed
@@ -221,9 +238,10 @@ export function useParticleEngine(
       ctxRef.current = ctx
 
       // Measure actual character advance width at runtime
-      ctx.font = `${PARTICLE_CONFIG.fontSize}px ${PARTICLE_CONFIG.fontFamily}`
+      const cfg = configRef.current
+      ctx.font = `${cfg.fontSize}px ${cfg.fontFamily}`
       const cellW = Math.ceil(ctx.measureText("M").width) + 1
-      const cellH = PARTICLE_CONFIG.charCellHeight
+      const cellH = cfg.charCellHeight
 
       const cols = Math.floor(w / cellW)
       const rows = Math.floor(h / cellH)
@@ -262,7 +280,8 @@ export function useParticleEngine(
       // Restore active icon if hover is still active after resize
       if (iconPathRef.current) {
         const bitmap = bitmapsRef.current[iconPathRef.current] ?? []
-        assignToLogo(particles, bitmap, w, h)
+        const c = configRef.current
+        assignToLogo(particles, bitmap, w, h, c.logoScale, c.logoBackgroundScale)
         animStateRef.current = "FORMING"
       }
     }
@@ -325,15 +344,16 @@ export function useParticleEngine(
 
       // ── Shine-sweep wave state machine ─────────────────────────────────
       // Freeze the sweep while any non-IDLE animation is active
-      const SWEEP_END = 1.0 + PARTICLE_CONFIG.waveWidth
+      const tickCfg = configRef.current
+      const SWEEP_END = 1.0 + tickCfg.waveWidth
       if (animStateRef.current === "IDLE") {
         if (waveStateRef.current === "SWEEPING") {
-          waveProgressRef.current += PARTICLE_CONFIG.waveSpeed * dt
+          waveProgressRef.current += tickCfg.waveSpeed * dt
           if (waveProgressRef.current >= SWEEP_END) {
             waveFromColorRef.current = WAVE_COLORS[waveColorIdxRef.current]
             waveProgressRef.current = SWEEP_END
             waveStateRef.current = "PAUSING"
-            wavePauseRef.current = PARTICLE_CONFIG.wavePauseDurationMs
+            wavePauseRef.current = tickCfg.wavePauseDurationMs
           }
         } else {
           wavePauseRef.current -= dt
@@ -350,13 +370,13 @@ export function useParticleEngine(
       if (state === "FORMING") {
         transitionTRef.current = Math.min(
           1,
-          transitionTRef.current + dt / PARTICLE_CONFIG.transitionDurationMs,
+          transitionTRef.current + dt / tickCfg.transitionDurationMs,
         )
         if (transitionTRef.current >= 0.98) animStateRef.current = "LOGO"
       } else if (state === "DISPERSING") {
         transitionTRef.current = Math.max(
           0,
-          transitionTRef.current - dt / PARTICLE_CONFIG.transitionDurationMs,
+          transitionTRef.current - dt / tickCfg.transitionDurationMs,
         )
         if (transitionTRef.current <= 0.02) {
           animStateRef.current = "IDLE"
@@ -394,7 +414,15 @@ export function useParticleEngine(
               if (iconPathRef.current) {
                 const bitmap = bitmapsRef.current[iconPathRef.current] ?? []
                 if (bitmap.length > 0) {
-                  assignToLogo(particlesRef.current, bitmap, w, h)
+                  const c = configRef.current
+                  assignToLogo(
+                    particlesRef.current,
+                    bitmap,
+                    w,
+                    h,
+                    c.logoScale,
+                    c.logoBackgroundScale,
+                  )
                   animStateRef.current = "FORMING"
                 }
               }
@@ -405,14 +433,14 @@ export function useParticleEngine(
 
       // ── Draw frame ─────────────────────────────────────────────────────
       ctx.clearRect(0, 0, w, h)
-      ctx.font = `${PARTICLE_CONFIG.fontSize}px ${PARTICLE_CONFIG.fontFamily}`
+      ctx.font = `${tickCfg.fontSize}px ${tickCfg.fontFamily}`
       ctx.textAlign = "center"
       ctx.textBaseline = "middle"
 
-      const ls = PARTICLE_CONFIG.lerpSpeed
+      const ls = tickCfg.lerpSpeed
       const { x: mx, y: my } = mouseRef.current
-      const mr = PARTICLE_CONFIG.mouseRadius
-      const minS = PARTICLE_CONFIG.mouseScaleMin
+      const mr = tickCfg.mouseRadius
+      const minS = tickCfg.mouseScaleMin
       const curState = animStateRef.current
       // Logo anim: only the dedicated logo formation states
       const isLogoAnim = curState === "FORMING" || curState === "LOGO" || curState === "DISPERSING"
@@ -421,7 +449,7 @@ export function useParticleEngine(
       const waveProgress = waveProgressRef.current
       const waveFrom = waveFromColorRef.current
       const waveTo = WAVE_COLORS[waveColorIdxRef.current]
-      const waveWidth = PARTICLE_CONFIG.waveWidth
+      const waveWidth = tickCfg.waveWidth
       // Build stops: fromColor → waveTo scaled by each brightness step
       const allStops: RGB[] = [waveFrom, ...WAVE_BRIGHTNESS_STEPS.map((b) => scaleRGB(waveTo, b))]
       const segCount = allStops.length - 1
@@ -455,12 +483,8 @@ export function useParticleEngine(
           p.scale += (p.targetScale - p.scale) * ls
         } else {
           // ── Idle oscillation ─────────────────────────────────────────────
-          const ox =
-            Math.sin(timestamp * PARTICLE_CONFIG.idleFrequency + p.phaseX) *
-            PARTICLE_CONFIG.idleAmplitudeX
-          const oy =
-            Math.cos(timestamp * PARTICLE_CONFIG.idleFrequency + p.phaseY) *
-            PARTICLE_CONFIG.idleAmplitudeY
+          const ox = Math.sin(timestamp * tickCfg.idleFrequency + p.phaseX) * tickCfg.idleAmplitudeX
+          const oy = Math.cos(timestamp * tickCfg.idleFrequency + p.phaseY) * tickCfg.idleAmplitudeY
           let tx = p.baseX + ox
           let ty = p.baseY + oy
           let ts = 1
@@ -532,7 +556,7 @@ export function useParticleEngine(
       canvas.removeEventListener("mouseleave", handleMouseLeave)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, height]) // re-runs on resize; canvasRef is stable, prefetchIconPaths intentionally on mount only
+  }, [width, height, config]) // re-runs on resize or breakpoint change; canvasRef is stable, prefetchIconPaths intentionally on mount only
 
   // ── iconPath effect: trigger logo formation / dispersal ─────────────────
   useEffect(() => {
@@ -547,7 +571,8 @@ export function useParticleEngine(
 
     if (iconPath) {
       const bitmap = bitmapsRef.current[iconPath] ?? []
-      assignToLogo(particles, bitmap, w, h)
+      const c = configRef.current
+      assignToLogo(particles, bitmap, w, h, c.logoScale, c.logoBackgroundScale)
       animStateRef.current = "FORMING"
       transitionTRef.current = 0
     } else {
