@@ -4,7 +4,3 @@ out
 .env
 .DS_Store
 *.tsbuildinfo
-
-# Large video files — host these on a CDN, not in git
-public/portfolio/**/*.mov
-public/portfolio/**/*.webm
