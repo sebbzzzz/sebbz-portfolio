@@ -20,7 +20,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   },
   {
     label: "Github",
-    href: "https://github.com/sebbz",
+    href: "https://github.com/sebbzzzz",
     iconPath: "/icons/github.svg",
   },
   {
