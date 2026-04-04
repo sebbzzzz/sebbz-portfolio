@@ -30,6 +30,10 @@ export default function InfiniteCarousel({
   const [hoveredRealIndex, setHoveredRealIndex] = useState<number | null>(null)
   // Tracks the "active" item index for keyboard navigation (Arrow keys advance, Enter/Space pins)
   const keyboardIndexRef = useRef(0)
+  // Tracks which realIndex values have fired onLoad — ref avoids re-render on every load event,
+  // state (shallow-copied Set) triggers re-render only once per new realIndex
+  const loadedIndicesRef = useRef<Set<number>>(new Set())
+  const [loadedIndices, setLoadedIndices] = useState<Set<number>>(new Set())
 
   // Boundary jump: receives the value just written — zero DOM reads, zero reflows
   function handleBoundaryJump(newScrollLeft: number) {
@@ -91,6 +95,12 @@ export default function InfiniteCarousel({
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
   }, [isDragging, isHovered, pinnedIndex])
+
+  function handleImageLoad(realIndex: number) {
+    if (loadedIndicesRef.current.has(realIndex)) return
+    loadedIndicesRef.current.add(realIndex)
+    setLoadedIndices(new Set(loadedIndicesRef.current))
+  }
 
   function handleItemClick(realIndex: number) {
     // Only treat as a click if the pointer barely moved (not a drag)
@@ -192,6 +202,23 @@ export default function InfiniteCarousel({
               draggable={false}
               sizes="(max-width: 639px) 72vw, (max-width: 767px) 40vw, (max-width: 1023px) 28vw, 20vw"
               className="object-cover"
+              onLoad={() => handleImageLoad(realIndex)}
+            />
+            <div
+              aria-hidden="true"
+              className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
+                loadedIndices.has(realIndex) ? "opacity-0" : "opacity-100"
+              }`}
+              style={
+                loadedIndices.has(realIndex)
+                  ? undefined
+                  : {
+                      background:
+                        "linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%)",
+                      backgroundSize: "200% 100%",
+                      animation: "carousel-shimmer 1.8s linear infinite",
+                    }
+              }
             />
             {isPinned && (
               <div

@@ -9,6 +9,7 @@ import type { ParticleEngineAPI } from "./components/ParticleCanvas/ParticleCanv
 import ParticleCanvas from "./components/ParticleCanvas/ParticleCanvas"
 import SocialLinks, { SocialLink } from "./components/SocialLinks/SocialLinks"
 import { useCarouselTransition } from "./use-carousel-transition"
+import { useMediaPreload } from "@/hooks/use-media-preload"
 import type { PortfolioItem } from "@/types/portfolio"
 
 const SOCIAL_LINKS: SocialLink[] = [
@@ -124,6 +125,11 @@ export default function HomePage() {
   const [displayedPinnedIndex, setDisplayedPinnedIndex] = useState<number | null>(null)
   const [isCrossFading, setIsCrossFading] = useState(false)
   const crossFadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Preload the hovered item's media so it is buffered before the user pins it
+  const hoveredItem =
+    activeCarouselIndex !== null ? PORTFOLIO_ITEMS[activeCarouselIndex] : undefined
+  useMediaPreload(hoveredItem?.mediaSrc, hoveredItem?.mediaType)
 
   // Only a pin (click) triggers the particle escape + media reveal.
   // Hover only forms the SVG shape — no escape.

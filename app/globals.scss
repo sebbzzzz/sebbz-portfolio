@@ -38,6 +38,15 @@
   }
 }
 
+@keyframes carousel-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 @keyframes carousel-gradient-shift {
   0% {
     background-position: 0% 50%;
