@@ -3,7 +3,7 @@ import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google"
 import "./tailwind.css"
 import "./globals.scss"
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sebbz.dev"
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://seb.bz"
 
 // Static — content is author-controlled, no user input involved
 const PERSON_SCHEMA = {
