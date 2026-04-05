@@ -251,7 +251,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-sm md:text-base leading-relaxed">
-            Full-stack engineer with seven years of experience who genuinely loves building things
+            A full-stack engineer with seven years of experience who genuinely loves building things
             that look great and work even better. I bring a background in animation and creative
             production into every interface I craft — pairing that eye for detail with React,
             TypeScript, and AI-powered workflows to ship faster, prototype smarter, and push ideas

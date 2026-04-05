@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react"
 
 import { useDragMomentum } from "@/hooks/use-drag-momentum"
 import type { PortfolioItem } from "@/types/portfolio"
+import Skeleton from "../UI/Skeleton/Skeleton"
 
 interface InfiniteCarouselProps {
   items: PortfolioItem[]
@@ -204,21 +205,10 @@ export default function InfiniteCarousel({
               className="object-cover"
               onLoad={() => handleImageLoad(realIndex)}
             />
-            <div
-              aria-hidden="true"
-              className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
+            <Skeleton
+              className={`absolute inset-0 rounded-card transition-opacity duration-300 ${
                 loadedIndices.has(realIndex) ? "opacity-0" : "opacity-100"
               }`}
-              style={
-                loadedIndices.has(realIndex)
-                  ? undefined
-                  : {
-                      background:
-                        "linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%)",
-                      backgroundSize: "200% 100%",
-                      animation: "carousel-shimmer 1.8s linear infinite",
-                    }
-              }
             />
             {isPinned && (
               <div
