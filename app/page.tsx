@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import BackgroundVideoOverlay from "./components/BackgroundVideoOverlay/BackgroundVideoOverlay"
 import CarouselItemInfoPanel from "./components/CarouselItemInfoPanel/CarouselItemInfoPanel"
 import InfiniteCarousel from "./components/InfiniteCarousel/InfiniteCarousel"
+import Loader from "./components/Loader/Loader"
 import type { ParticleEngineAPI } from "./components/ParticleCanvas/ParticleCanvas"
 import ParticleCanvas from "./components/ParticleCanvas/ParticleCanvas"
 import SocialLinks, { SocialLink } from "./components/SocialLinks/SocialLinks"
@@ -104,9 +105,38 @@ const PREFETCH_PATHS = [
   ...PORTFOLIO_ITEMS.flatMap((item) => (item.iconPath ? [item.iconPath] : [])),
 ]
 
+const RevealStage = {
+  Loading: "loading",
+  Particles: "particles",
+  Content: "content",
+} as const
+type RevealStage = (typeof RevealStage)[keyof typeof RevealStage]
+
 export default function HomePage() {
   const particleContainer = useRef<HTMLDivElement>(null)
   const particleEngineRef = useRef<ParticleEngineAPI | null>(null)
+
+  const [revealStage, setRevealStage] = useState<RevealStage>(RevealStage.Loading)
+  // Animate 0→30% over 2s (fake), then let real image-load progress take over
+  const [fakeProgress, setFakeProgress] = useState(0)
+  const [fakeReady, setFakeReady] = useState(false)
+  const [realProgress, setRealProgress] = useState(0)
+  const loadProgress = fakeReady ? Math.max(30, realProgress) : fakeProgress
+
+  useEffect(() => {
+    const DURATION = 2000
+    const TARGET = 30
+    const start = performance.now()
+    const id = setInterval(() => {
+      const elapsed = performance.now() - start
+      setFakeProgress(Math.min(TARGET, Math.round((elapsed / DURATION) * TARGET)))
+      if (elapsed >= DURATION) {
+        clearInterval(id)
+        setFakeReady(true)
+      }
+    }, 50)
+    return () => clearInterval(id)
+  }, [])
 
   const [particleContainerDimensions, setParticleContainerDimensions] = useState({
     width: 0,
@@ -143,6 +173,13 @@ export default function HomePage() {
   const displayedItem = displayedPinnedIndex !== null ? PORTFOLIO_ITEMS[displayedPinnedIndex] : null
   const overlayVideoSrc = displayedItem?.mediaType === "video" ? displayedItem.mediaSrc : undefined
   const overlayImageSrc = displayedItem?.mediaType === "image" ? displayedItem.mediaSrc : undefined
+
+  function handleLoaderComplete() {
+    setRevealStage(RevealStage.Particles)
+    setTimeout(() => {
+      setRevealStage(RevealStage.Content)
+    }, 600)
+  }
 
   // When a carousel item is hovered — form its SVG shape in the particle canvas.
   // Don't clear the icon on item-leave (only on container-leave) to avoid
@@ -240,9 +277,13 @@ export default function HomePage() {
 
   return (
     <main className="relative w-svw h-svh">
+      <Loader progress={loadProgress} onComplete={handleLoaderComplete} />
+
       <section
         className={`flex flex-col justify-center gap-8 absolute top-3 left-3 right-3 md:top-5 md:left-5 md:right-5 w-auto md:max-w-6/12 lg:max-w-5/12 z-10 glass-panel p-5 transition-opacity duration-500 ${
-          pinnedIndex !== null ? "opacity-0 pointer-events-none" : "opacity-100"
+          pinnedIndex !== null || revealStage !== RevealStage.Content
+            ? "opacity-0 pointer-events-none"
+            : "opacity-100"
         }`}
       >
         <div className="grid gap-2">
@@ -267,7 +308,9 @@ export default function HomePage() {
 
       <section
         aria-label="Portfolio projects"
-        className="absolute bottom-6 md:bottom-10 inset-x-0 z-10"
+        className={`absolute bottom-6 md:bottom-10 inset-x-0 z-10 transition-opacity duration-500 ${
+          revealStage === RevealStage.Content ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
       >
         <InfiniteCarousel
           items={PORTFOLIO_ITEMS}
@@ -275,6 +318,7 @@ export default function HomePage() {
           onHoverChange={handleCarouselHoverChange}
           onPinChange={handlePinChange}
           onContainerHoverChange={handleContainerHoverChange}
+          onLoadProgress={setRealProgress}
         />
       </section>
 
@@ -285,8 +329,13 @@ export default function HomePage() {
         imageSrc={overlayImageSrc}
       />
 
-      {/* Particle canvas — always full opacity; escape/return animations handle visibility */}
-      <div ref={particleContainer} className="w-full h-full">
+      {/* Particle canvas — fades in after loader completes */}
+      <div
+        ref={particleContainer}
+        className={`w-full h-full transition-opacity duration-500 ${
+          revealStage === RevealStage.Loading ? "opacity-0" : "opacity-100"
+        }`}
+      >
         {hasDimensions && (
           <ParticleCanvas
             ref={particleEngineRef}

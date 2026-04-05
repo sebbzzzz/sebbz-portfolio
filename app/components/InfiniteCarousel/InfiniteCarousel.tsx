@@ -13,6 +13,7 @@ interface InfiniteCarouselProps {
   onHoverChange?: (index: number | null) => void
   onPinChange?: (index: number | null) => void
   onContainerHoverChange?: (hovered: boolean) => void
+  onLoadProgress?: (percent: number) => void
 }
 
 const CLICK_THRESHOLD_PX = 5
@@ -23,6 +24,7 @@ export default function InfiniteCarousel({
   onHoverChange,
   onPinChange,
   onContainerHoverChange,
+  onLoadProgress,
 }: InfiniteCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   // Cache track width to avoid reading scrollWidth (forces reflow) in the animation hot path
@@ -101,6 +103,7 @@ export default function InfiniteCarousel({
     if (loadedIndicesRef.current.has(realIndex)) return
     loadedIndicesRef.current.add(realIndex)
     setLoadedIndices(new Set(loadedIndicesRef.current))
+    onLoadProgress?.(Math.round((loadedIndicesRef.current.size / items.length) * 100))
   }
 
   function handleItemClick(realIndex: number) {

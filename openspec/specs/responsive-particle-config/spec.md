@@ -37,3 +37,27 @@ The `useParticleEngine` hook SHALL accept particle configuration as a parameter 
 
 - **WHEN** the viewport resizes across a breakpoint boundary
 - **THEN** the particle grid SHALL be recalculated with the updated config values, producing a new column/row count appropriate for the new font size
+
+### Requirement: Wave-driven character animation in idle state
+
+The `useParticleEngine` hook SHALL render a wave-driven character animation to control per-particle visibility in the idle state. The wave animation SHALL use multiple overlapping sine/cosine waves to produce an organic, continuously moving pattern. Only particles whose base-position wave value exceeds the configured threshold SHALL be drawn. The existing particle font, character set, icon-escape effects, and mouse-interaction behaviors SHALL remain unchanged. The wave gate SHALL also apply during DISPERSING and RETURNING states to prevent a full-grid flash on transition back to idle.
+
+#### Scenario: Wave animation is continuous in idle
+
+- **WHEN** the particle engine is in IDLE state
+- **THEN** the wave pattern SHALL visibly change on every rendered frame, driven by an incrementing time value, with only wave-active particles drawn
+
+#### Scenario: Idle grid is replaced by wave pattern
+
+- **WHEN** the particle engine is in IDLE state
+- **THEN** the static full particle grid SHALL NOT be visible; only particles passing the wave threshold SHALL be drawn
+
+#### Scenario: Wave gate applies during disperse and return transitions
+
+- **WHEN** the engine transitions from FORMING/LOGO back to IDLE (DISPERSING) or from ESCAPED back to IDLE (RETURNING)
+- **THEN** the wave gate SHALL apply during those transition states so no full-grid flash occurs
+
+#### Scenario: Existing particle effects are preserved
+
+- **WHEN** the user moves their mouse near particles or hovers a carousel item
+- **THEN** the particle scatter/attract and icon-formation behaviors SHALL function identically to before

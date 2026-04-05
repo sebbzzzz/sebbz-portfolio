@@ -181,6 +181,8 @@ export function useParticleEngine(
   const mouseRef = useRef({ x: -9999, y: -9999 })
   const configRef = useRef(config)
   configRef.current = config
+  // ── Background wave animation time ────────────────────────────────────────
+  const waveTimeRef = useRef(0)
   // ── Shine-sweep wave state ─────────────────────────────────────────────────
   const waveProgressRef = useRef(0) // 0 → ~1.3 during sweep, then resets
   const waveStateRef = useRef<"SWEEPING" | "PAUSING">("PAUSING") // start paused so first sweep is delayed
@@ -341,6 +343,7 @@ export function useParticleEngine(
       if (!ctx) return
 
       const dt = Math.min(timestamp - prev, 50) // cap delta — avoids jumps after tab switch
+      waveTimeRef.current += dt * 0.0012 // ~0.02 per 16ms frame, matches example-animation-canvas.js
 
       // ── Shine-sweep wave state machine ─────────────────────────────────
       // Freeze the sweep while any non-IDLE animation is active
@@ -482,9 +485,15 @@ export function useParticleEngine(
           p.y += (p.targetY - p.y) * ls
           p.scale += (p.targetScale - p.scale) * ls
         } else {
-          // ── Idle oscillation ─────────────────────────────────────────────
-          const ox = Math.sin(timestamp * tickCfg.idleFrequency + p.phaseX) * tickCfg.idleAmplitudeX
-          const oy = Math.cos(timestamp * tickCfg.idleFrequency + p.phaseY) * tickCfg.idleAmplitudeY
+          // ── Idle oscillation (suppressed in IDLE — wave drives the visual) ──
+          const ox =
+            curState === "IDLE"
+              ? 0
+              : Math.sin(timestamp * tickCfg.idleFrequency + p.phaseX) * tickCfg.idleAmplitudeX
+          const oy =
+            curState === "IDLE"
+              ? 0
+              : Math.cos(timestamp * tickCfg.idleFrequency + p.phaseY) * tickCfg.idleAmplitudeY
           let tx = p.baseX + ox
           let ty = p.baseY + oy
           let ts = 1
@@ -508,6 +517,25 @@ export function useParticleEngine(
           p.x += (tx - p.x) * ls
           p.y += (ty - p.y) * ls
           p.scale += (ts - p.scale) * ls
+        }
+
+        // Wave gates visibility in idle, disperse, and return — so the wave
+        // pattern is already established before/during transitions back to grid
+        if (curState === "IDLE" || curState === "DISPERSING" || curState === "RETURNING") {
+          const nx = (p.baseX / w) * 100
+          const ny = (p.baseY / h) * 60
+          const distX = nx - 50
+          const distY = ny - 30
+          const dist = Math.sqrt(distX * distX + distY * distY)
+          const t = waveTimeRef.current
+          const noiseX = Math.sin(nx * 0.1 + t * 0.7) * 10
+          const noiseY = Math.cos(ny * 0.1 + t * 0.5) * 10
+          const wave1 = Math.sin(dist * 0.08 - t) * 0.3
+          const wave2 =
+            Math.sin((nx + noiseX) * 0.1 + t) * Math.cos((ny + noiseY) * 0.1 + t * 0.8) * 0.4
+          const wave3 = Math.sin((nx - ny) * 0.05 + t * 0.6) * 0.2
+          const wave4 = Math.cos(nx * 0.07 - ny * 0.05 + t * 0.4) * 0.2
+          if ((wave1 + wave2 + wave3 + wave4 + 1) / 2 <= 0.63) continue
         }
 
         if (p.scale < 0.01) continue // skip invisible
