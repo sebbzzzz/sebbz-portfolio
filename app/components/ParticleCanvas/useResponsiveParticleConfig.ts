@@ -7,7 +7,7 @@ const MOBILE_CONFIG: ParticleConfig = {
   ...PARTICLE_CONFIG,
   fontSize: 10,
   charCellHeight: 20,
-  logoScale: 0.3,
+  logoScale: 0.37,
   mouseRadius: 60,
 }
 
@@ -15,7 +15,7 @@ const SM_CONFIG: ParticleConfig = {
   ...PARTICLE_CONFIG,
   fontSize: 12,
   charCellHeight: 24,
-  logoScale: 0.38,
+  logoScale: 0.46,
   mouseRadius: 80,
 }
 

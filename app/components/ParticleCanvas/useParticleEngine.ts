@@ -93,7 +93,7 @@ function computeLogoTargets(
   const totalW = bCols * cellSize
   const totalH = bRows * cellSize
   const startX = (w - totalW) / 2
-  const startY = (h - totalH) / 2
+  const startY = (h - totalH) / 2 - 10
 
   const targets: Array<{ x: number; y: number }> = []
   for (let r = 0; r < bRows; r++) {
@@ -127,31 +127,21 @@ function assignToLogo(
     p.targetScale = logoBackgroundScale
   }
 
-  const used = new Uint8Array(particles.length)
+  // Shuffle particle indices so particles fly in from all directions
+  const indices = Array.from({ length: particles.length }, (_, i) => i)
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const tmp = indices[i]
+    indices[i] = indices[j]
+    indices[j] = tmp
+  }
 
-  // Greedy nearest-neighbor assignment
-  for (const target of targets) {
-    let bestDist = Infinity
-    let bestIdx = -1
-    for (let i = 0; i < particles.length; i++) {
-      if (used[i]) continue
-      const p = particles[i]
-      const dx = p.baseX - target.x
-      const dy = p.baseY - target.y
-      const d2 = dx * dx + dy * dy
-      if (d2 < bestDist) {
-        bestDist = d2
-        bestIdx = i
-      }
-    }
-    if (bestIdx >= 0) {
-      used[bestIdx] = 1
-      const p = particles[bestIdx]
-      p.inLogo = true
-      p.targetX = target.x
-      p.targetY = target.y
-      p.targetScale = 1
-    }
+  for (let i = 0; i < targets.length && i < indices.length; i++) {
+    const p = particles[indices[i]]
+    p.inLogo = true
+    p.targetX = targets[i].x
+    p.targetY = targets[i].y
+    p.targetScale = 1
   }
 }
 
@@ -343,7 +333,7 @@ export function useParticleEngine(
       if (!ctx) return
 
       const dt = Math.min(timestamp - prev, 50) // cap delta — avoids jumps after tab switch
-      waveTimeRef.current += dt * 0.0012 // ~0.02 per 16ms frame, matches example-animation-canvas.js
+      waveTimeRef.current += dt * 0.0004 // ~4× slower than original, similar pace to carousel autoplay
 
       // ── Shine-sweep wave state machine ─────────────────────────────────
       // Freeze the sweep while any non-IDLE animation is active

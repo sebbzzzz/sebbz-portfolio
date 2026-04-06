@@ -1,4 +1,4 @@
-const BITMAP_RESOLUTION = 64
+const BITMAP_RESOLUTION = 80
 
 // Module-level cache: keyed by "<path>:<resolution>"
 const cache = new Map<string, number[][]>()
