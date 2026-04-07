@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { GoogleTagManager } from "@next/third-parties/google"
 import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google"
 import "./tailwind.css"
 import "./globals.scss"
@@ -108,6 +109,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(PERSON_SCHEMA) }}
         />
+
+        <GoogleTagManager gtmId="G-MG6B78M1F4" />
       </head>
       <body>{children}</body>
     </html>
