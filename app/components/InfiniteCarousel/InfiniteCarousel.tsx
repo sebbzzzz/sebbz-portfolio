@@ -205,6 +205,7 @@ export default function InfiniteCarousel({
               priority={!isClone && realIndex < 3}
               draggable={false}
               sizes="(max-width: 639px) 72vw, (max-width: 767px) 40vw, (max-width: 1023px) 28vw, 20vw"
+              loading="eager"
               className="object-cover"
               onLoad={() => handleImageLoad(realIndex)}
             />

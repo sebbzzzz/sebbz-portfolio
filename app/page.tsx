@@ -100,6 +100,8 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
   },
 ]
 
+const MAX_PRELOAD_MS = 8000
+
 const PREFETCH_PATHS = [
   ...SOCIAL_LINKS.map((l) => l.iconPath),
   ...PORTFOLIO_ITEMS.flatMap((item) => (item.iconPath ? [item.iconPath] : [])),
@@ -137,6 +139,14 @@ export default function HomePage() {
     }, 50)
     return () => clearInterval(id)
   }, [])
+
+  // Safety-net: if any thumbnail never fires onLoad (e.g. lazy-load on mobile),
+  // force progress to 100 after MAX_PRELOAD_MS so the loader always completes.
+  useEffect(() => {
+    if (!fakeReady || realProgress >= 100) return
+    const id = setTimeout(() => setRealProgress(100), MAX_PRELOAD_MS)
+    return () => clearTimeout(id)
+  }, [fakeReady, realProgress])
 
   const [particleContainerDimensions, setParticleContainerDimensions] = useState({
     width: 0,

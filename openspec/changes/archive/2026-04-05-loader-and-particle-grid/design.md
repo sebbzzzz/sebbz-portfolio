@@ -7,6 +7,7 @@ Two sub-tasks share a single change because they are coupled: the loader control
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Full-screen ASCII loader that tracks carousel image loading progress (0–100%)
 - Loader fades out when all images are loaded, then orchestrates: particles fade in → carousel + paragraph fade in
 - IBM Mono font in loader, centered, matching the site's monospace aesthetic
@@ -14,6 +15,7 @@ Two sub-tasks share a single change because they are coupled: the loader control
 - ParticleCanvas renders a wave-driven character animation as its background; existing font, character set, scatter/attract effects, and icon shapes are preserved
 
 **Non-Goals:**
+
 - Persisting "already loaded" state across sessions (loader runs on every page visit)
 - Caching or service worker integration
 - Changing the particle font, character set, or interaction behaviors
@@ -26,6 +28,7 @@ Two sub-tasks share a single change because they are coupled: the loader control
 **Decision**: Add an `onLoadProgress(percent: number)` prop to `InfiniteCarousel`. The component counts how many unique real-index images have fired `onLoad`, divides by `items.length`, and calls the prop with the resulting percentage.
 
 **Alternatives considered**:
+
 - Track from the page using `window` load events — unreliable for individual image progress
 - Use a shared loading context/store — overkill for a single use
 
@@ -36,6 +39,7 @@ Two sub-tasks share a single change because they are coupled: the loader control
 **Decision**: A new `app/components/Loader/Loader.tsx` (`"use client"`) renders the full-screen overlay. When progress reaches 100%, it adds a CSS class that triggers a fade-out via Tailwind transition classes. On transition end, the parent reveals the rest of the UI.
 
 **Alternatives considered**:
+
 - Framer Motion for the fade — unnecessary dependency
 - Inline style transitions — harder to maintain
 
@@ -46,6 +50,7 @@ Two sub-tasks share a single change because they are coupled: the loader control
 **Decision**: `app/page.tsx` (or the relevant layout) holds a `revealStage` state: `"loading" | "particles" | "content"`. The Loader calls `onComplete` when done. The page then sets `revealStage` to `"particles"`, and after a short delay (e.g., 600ms) to `"content"`.
 
 **Alternatives considered**:
+
 - Managing inside the Loader component — breaks separation; the Loader shouldn't control what comes after it
 - CSS-only sequencing — hard to coordinate between three independent components
 
@@ -56,6 +61,7 @@ Two sub-tasks share a single change because they are coupled: the loader control
 **Decision**: In `useParticleEngine.ts`, add a wave animation tick (ported from `example-animation-canvas.js` wave math) that runs alongside the existing particle system. The wave layer is rendered first (background), then particles on top. A `time` ref increments each frame.
 
 **Alternatives considered**:
+
 - Replace the particle engine entirely — loses all existing icon/escape effects
 - Separate canvas element for the wave — doubles canvas overhead
 
