@@ -8,8 +8,15 @@
     color-scheme: dark;
   }
 
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
-    @apply min-h-screen bg-canvas text-text-base antialiased;
+    @apply bg-canvas text-text-base antialiased;
+    height: 100svh;
+    overflow: hidden;
     font-family: var(--font-inter);
   }
 

@@ -10,6 +10,7 @@ import type { ParticleEngineAPI } from "./components/ParticleCanvas/ParticleCanv
 import ParticleCanvas from "./components/ParticleCanvas/ParticleCanvas"
 import SocialLinks, { SocialLink } from "./components/SocialLinks/SocialLinks"
 import { useCarouselTransition } from "./use-carousel-transition"
+import { useIsMobile } from "@/hooks/use-is-mobile"
 import { useMediaPreload } from "@/hooks/use-media-preload"
 import type { PortfolioItem } from "@/types/portfolio"
 
@@ -115,6 +116,7 @@ const RevealStage = {
 type RevealStage = (typeof RevealStage)[keyof typeof RevealStage]
 
 export default function HomePage() {
+  const isMobile = useIsMobile()
   const particleContainer = useRef<HTMLDivElement>(null)
   const particleEngineRef = useRef<ParticleEngineAPI | null>(null)
 
@@ -173,7 +175,7 @@ export default function HomePage() {
 
   // Only a pin (click) triggers the particle escape + media reveal.
   // Hover only forms the SVG shape — no escape.
-  const isTransitionActive = pinnedIndex !== null
+  const isTransitionActive = pinnedIndex !== null && !isMobile
   const { isMediaVisible } = useCarouselTransition(isTransitionActive, particleEngineRef)
   // Hide the overlay briefly at the mid-point of an item switch so the src swap is invisible
   const overlayVisible = isMediaVisible && !isCrossFading
@@ -225,6 +227,11 @@ export default function HomePage() {
     setPinnedIndex(index)
 
     if (index !== null) {
+      // On mobile: form the eye icon in particles immediately (no video / escape)
+      if (isMobile) {
+        setActiveIconPath(PORTFOLIO_ITEMS[index].iconPath ?? null)
+      }
+
       if (prevPinnedIndex !== null && prevPinnedIndex !== index) {
         // Switching between two pinned items — fade old out, swap, fade new in
         setIsCrossFading(true)
@@ -243,8 +250,7 @@ export default function HomePage() {
         setIsInfoPanelVisible(true)
       }
     } else {
-      // Unpin — clear the icon immediately so particles return to idle grid,
-      // not back to the SVG shape they were forming
+      // Unpin — clear the icon so particles return to idle grid
       setActiveIconPath(null)
       setActiveCarouselIndex(null)
       setIsInfoPanelVisible(false)
@@ -332,12 +338,14 @@ export default function HomePage() {
         />
       </section>
 
-      {/* Background media overlay — fades in after particles escape */}
-      <BackgroundVideoOverlay
-        isVisible={overlayVisible}
-        src={overlayVideoSrc}
-        imageSrc={overlayImageSrc}
-      />
+      {/* Background media overlay — desktop only; video doesn't play reliably on mobile */}
+      {!isMobile && (
+        <BackgroundVideoOverlay
+          isVisible={overlayVisible}
+          src={overlayVideoSrc}
+          imageSrc={overlayImageSrc}
+        />
+      )}
 
       {/* Particle canvas — fades in after loader completes */}
       <div

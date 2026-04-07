@@ -41,7 +41,7 @@ export default function Loader({ progress, onComplete }: LoaderProps) {
       onTransitionEnd={handleTransitionEnd}
     >
       <div className="font-mono text-white text-center text-sm select-none">
-        <div>[{bar}]</div>
+        <div>--{bar}--</div>
         <div className="mt-2">{progress}%</div>
       </div>
     </div>
