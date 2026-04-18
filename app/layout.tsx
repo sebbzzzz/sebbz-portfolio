@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google"
+import { AnimatedFavicon } from "@/app/components/AnimatedFavicon/AnimatedFavicon"
 import "./tailwind.css"
 import "./globals.scss"
 
@@ -78,6 +79,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.ico", rel: "icon" },
       { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
@@ -110,7 +112,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(PERSON_SCHEMA) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <AnimatedFavicon />
+        {children}
+      </body>
       <GoogleAnalytics gaId="G-MG6B78M1F4" />
     </html>
   )
